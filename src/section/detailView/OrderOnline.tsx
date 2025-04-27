@@ -12,6 +12,8 @@ import { itemsData } from "../../data/OrderOnlineData";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import { useQuery } from "@tanstack/react-query";
+import { getOrderOnlineData } from "../../utils/orderonline";
 
 const OrderOnline = () => {
   const dispatch = useDispatch();
@@ -27,8 +29,12 @@ const OrderOnline = () => {
     category: string;
   }
 
+  const { data: itemsData } = useQuery({
+    queryKey: ["itemsData"],
+    queryFn: getOrderOnlineData
+  })
   const allItems: { [key: number]: AllItems[] } = {
-    1: itemsData,
+    1: itemsData || [],
   };
 
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -176,13 +182,7 @@ const OrderOnline = () => {
       setAllRecommendedItems([]);
     }
 
-    // Set all items based on brandId
-    /*if (allItems[brandId]) {
-            setItems(allItems[brandId]);
-        } else {
-            setItems([]);
-        }
-*/
+
   }, [id]);
 
   // Filter the items based on selected category
