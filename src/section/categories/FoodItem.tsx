@@ -11,6 +11,8 @@ import fc4 from "../../assets/Images/FoodCategoryImg/FC5.png";
 import fc6 from "../../assets/Images/FoodCategoryImg/FC6.png";
 import { useDispatch } from "react-redux";
 import { addItemToCartApi, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
+import { useQuery } from "@tanstack/react-query";
+import { getFoodItemData } from "../../utils/foodItem";
 
 interface FoodItem {
   id: number;
@@ -79,62 +81,11 @@ const FoodItem = () => {
     }
   }, [userId, selectedFoodItem]); // Add selectedFoodItem as a dependency
 
-  const foodItems: FoodItem[] = [
-    {
-      id: 1,
-      name: "Vadapav",
-      image: fc1,
-      price: 200,
-      description: "Bombay's famous Vadapav",
-      overview: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 1,
-    },
-    {
-      id: 2,
-      name: "Panipuri",
-      image: fc2,
-      price: 150,
-      description: "Gujarat's famous Panipuri",
-      overview: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 1,
-    },
-    {
-      id: 3,
-      name: "Pav Bhaji",
-      image: fc3,
-      price: 100,
-      description: "South Indian's Pav Bhaji",
-      overview: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 1,
-    },
-    {
-      id: 4,
-      name: "Ice-Cream",
-      image: fc4,
-      price: 50,
-      description: "Mumbai's Ice-Cream",
-      overview: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 1,
-    },
-    {
-      id: 5,
-      name: "Sandwich",
-      image: fc5,
-      price: 60,
-      description: "Mumbai's Sandwich",
-      overview: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 1,
-    },
-    {
-      id: 6,
-      name: "Pizza",
-      image: fc6,
-      price: 80,
-      description: "America's Pizza",
-      overview: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 1,
-    },
-  ];
+  const { data: FoodItem } = useQuery({
+    queryKey: ["foodItem"],
+    queryFn: getFoodItemData
+  })
+  const foodItems: FoodItem[] = FoodItem;
 
   useEffect(() => {
     const foodId = parseInt(id || "0");
