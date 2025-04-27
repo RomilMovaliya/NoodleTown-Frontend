@@ -1,14 +1,8 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Skeleton, Stack, Typography } from "@mui/material";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import fc1 from "../../assets/Images/FoodCategoryImg/FC1.png";
-import fc2 from "../../assets/Images/FoodCategoryImg/FC2.png";
-import fc3 from "../../assets/Images/FoodCategoryImg/FC3.png";
-import fc5 from "../../assets/Images/FoodCategoryImg/FC4.png";
-import fc4 from "../../assets/Images/FoodCategoryImg/FC5.png";
-import fc6 from "../../assets/Images/FoodCategoryImg/FC6.png";
 import { useDispatch } from "react-redux";
 import { addItemToCartApi, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
 import { useQuery } from "@tanstack/react-query";
@@ -85,13 +79,17 @@ const FoodItem = () => {
     queryKey: ["foodItem"],
     queryFn: getFoodItemData
   })
-  const foodItems: FoodItem[] = FoodItem;
+  const foodItems: FoodItem[] = FoodItem?.data || [];
+
+
+
+
 
   useEffect(() => {
     const foodId = parseInt(id || "0");
     const food = foodItems.find((item) => item.id === foodId);
     setSelectedFoodItem(food || null);
-  }, [id]);
+  }, [id, foodItems]);
 
   const handleAddToCart = () => {
     if (!isLoggedIn) {
@@ -151,13 +149,26 @@ const FoodItem = () => {
   return (
     <Stack direction={{ xs: "column", md: "row" }} spacing={3} mt={10} mx={3}>
       <Stack spacing={2}>
-        <Box
-          component="img"
-          src={selectedFoodItem?.image}
-          width="300px"
-          height="300px"
-        />
-        {!isCartItem ? (
+        {selectedFoodItem ? (
+          <Box
+            component="img"
+            src={selectedFoodItem?.image}
+            width="300px"
+            height="300px"
+          />
+        ) : (
+          <Skeleton
+            variant="rounded"
+            width={300}
+            height={300}
+            animation="wave"
+          />
+        )}
+
+
+        {!selectedFoodItem ? (
+          <Skeleton variant="rounded" width={200} height={40} animation="wave" />
+        ) : !isCartItem ? (
           <Button variant="contained" color="warning" onClick={handleAddToCart}>
             Add To Cart
           </Button>
@@ -179,17 +190,33 @@ const FoodItem = () => {
               +
             </Button>
           </Stack>
+
         )}
+
       </Stack>
       <Stack spacing={2}>
-        <Typography variant="h4">{selectedFoodItem?.name}</Typography>
-        <Typography variant="h6" color="text.secondary">
-          Price: ₹{selectedFoodItem?.price}
-        </Typography>
-        <Typography>{selectedFoodItem?.description}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          {selectedFoodItem?.overview}
-        </Typography>
+
+        {selectedFoodItem ? (
+          <>
+            <Typography variant="h4">{selectedFoodItem?.name}</Typography>
+            <Typography variant="h6" color="text.secondary">
+              Price: ₹{selectedFoodItem?.price}
+            </Typography>
+            <Typography>{selectedFoodItem?.description}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {selectedFoodItem?.overview}
+            </Typography>
+
+          </>
+        ) : (
+          <>
+            <Skeleton variant="text" width={200} height={40} animation="wave" />
+            <Skeleton variant="text" width={150} animation="wave" />
+            <Skeleton variant="text" width={300} animation="wave" />
+            <Skeleton variant="rounded" width={350} height={100} animation="wave" />
+          </>
+
+        )}
       </Stack>
     </Stack>
   );
