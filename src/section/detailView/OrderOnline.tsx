@@ -173,7 +173,6 @@ const OrderOnline = () => {
     enabled: !!userId,
   });
 
-
   console.log("fetch cart item", items);
 
   const handleIncrement = (id: number, quantity: number) => {
@@ -230,6 +229,18 @@ const OrderOnline = () => {
   // console.log(matchArray)
   //--------------------------------------------------------------------------------------------------------------------
 
+
+  // --------------------------------------- my pure logic for testing quantity -------------------------------------------
+
+  // console.log("my itemsssss data:", items);
+  // console.log("my cartItemssss:", cartItems);
+
+  const fetchQuantityfunc = (name: string) => {
+    const item = items.find((item) => item.name === name)
+    return item ? item.quantity : 0;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------
   return (
     <>
       <Box
@@ -329,12 +340,12 @@ const OrderOnline = () => {
             >
               {filteredItems.map((item, index) => {
                 const isItemInCart = matchArray[index];
-                const ItemQuantity = item.quantity;
+
+                const ItemQuantity = fetchQuantityfunc(item.name);
+
                 const itemInCart = itemsInCart.find(
                   (cartItem) => cartItem.name === item.name
                 ); // Get the item from cart
-
-
 
 
 
