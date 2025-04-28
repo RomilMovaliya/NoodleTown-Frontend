@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import { useDispatch } from "react-redux";
-import { addItemToCartApi, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
+import { addItemToCartApi, incrementQuantity, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
 import { useQuery } from "@tanstack/react-query";
 import { getFoodItemData } from "../../utils/foodItem";
 
@@ -118,8 +118,10 @@ const FoodItem = () => {
     }
   };
 
+
   const handleIncrement = (id: number, quantity: number) => {
     console.log("Incrementing quantity for item with ID:", id);
+    dispatch(incrementQuantity(id));
     incrementQuantityApi(id, quantity)
       .then(() => {
         dispatch({ type: "update item in cart", payload: id });

@@ -5,15 +5,17 @@ import {
   addItem,
   addItemToCartApi,
   decrementQuantity,
+  decrementQuantityApi,
   incrementQuantity,
+  incrementQuantityApi,
 } from "../../store/cartSlice";
 import { RootState } from "../../store/store";
-import { itemsData } from "../../data/OrderOnlineData";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { getOrderOnlineData } from "../../utils/orderonline";
+import { fetchCartItems } from "../../utils/cartItem";
 
 const OrderOnline = () => {
   const dispatch = useDispatch();
@@ -160,12 +162,38 @@ const OrderOnline = () => {
     }
   };
 
-  const handleIncrement = (id: number) => {
+  const userId = Cookies.get("userId");
+  const {
+    data: items = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["cartItems", userId],
+    queryFn: fetchCartItems,
+    enabled: !!userId,
+  });
+
+
+  console.log("fetch cart item", items);
+
+  const handleIncrement = (id: number, quantity: number) => {
     dispatch(incrementQuantity(id)); // Increment quantity of item in cart
+    incrementQuantityApi(id, quantity)
+      .then(() => refetch())
+      .catch((error) => {
+        console.error("Failed to update item in cart:", error);
+        toast.error("Failed to update item in your cart");
+      });
   };
 
-  const handleDecrement = (id: number) => {
-    dispatch(decrementQuantity(id)); // Decrement quantity of item in cart
+  const handleDecrement = (id: number, quantity: number) => {
+    dispatch(decrementQuantity(id));
+    decrementQuantityApi(id, quantity)
+      .then(() => refetch())
+      .catch((error) => {
+        console.error("Failed to update item in cart:", error);
+        toast.error("Failed to update item in your cart");
+      });
   };
 
   const [allrecommendedItems, setAllRecommendedItems] = useState<
@@ -189,6 +217,19 @@ const OrderOnline = () => {
   const filteredItems = Object.values(allItems)
     .flat()
     .filter((item) => item.category === selectedCategory);
+
+
+  //  --------------------------------my pure logic for testing cart button  -------------------------------------
+
+  // console.log("filtered item", filteredItems);//(5) [{…}, {…}, {…}, {…}, {…}]
+  // console.log(items.map((itemm) => itemm.name)); //['Treat Combo']
+
+  const cartItems = items.map((itemm) => (itemm.name));
+  // console.log("cart items", cartItems)
+  const matchArray = filteredItems.map((item) => cartItems.includes(item.name));
+  // console.log(matchArray)
+  //--------------------------------------------------------------------------------------------------------------------
+
   return (
     <>
       <Box
@@ -286,10 +327,16 @@ const OrderOnline = () => {
               marginInline="70px"
               sx={{ "@media (max-width:1090px)": { marginInline: "10px" } }}
             >
-              {filteredItems.map((item) => {
+              {filteredItems.map((item, index) => {
+                const isItemInCart = matchArray[index];
+                const ItemQuantity = item.quantity;
                 const itemInCart = itemsInCart.find(
-                  (cartItem) => cartItem.id === item.id
+                  (cartItem) => cartItem.name === item.name
                 ); // Get the item from cart
+
+
+
+
 
                 return (
                   <Box
@@ -380,7 +427,8 @@ const OrderOnline = () => {
 
                       <Box width="100%">
                         {/* Conditional rendering for Add to Cart or quantity adjustment */}
-                        {!itemInCart || itemInCart.quantity === 0 ? (
+
+                        {!isItemInCart ? (
                           <Button
                             variant="contained"
                             sx={{
@@ -401,20 +449,24 @@ const OrderOnline = () => {
                                 backgroundColor: "#F3F3F3",
                                 color: "black",
                               }}
-                              onClick={() => handleDecrement(item.id)}
+                              onClick={() =>
+                                handleDecrement(item.id, itemInCart ? itemInCart.quantity : 0)
+                              }
                             >
                               -
                             </Button>
                             <Typography sx={{ alignContent: "center" }}>
-                              {itemInCart.quantity}
+                              {ItemQuantity}
                             </Typography>
                             <Button
                               sx={{
                                 backgroundColor: "#FFA500",
                                 color: "white",
                               }}
-                              onClick={() => handleIncrement(item.id)}
-                              disabled={itemInCart.quantity === 5}
+                              onClick={() =>
+                                handleIncrement(item.id, itemInCart ? itemInCart.quantity : 0)
+                              }
+                              disabled={ItemQuantity === 5}
                             >
                               +
                             </Button>

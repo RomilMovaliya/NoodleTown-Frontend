@@ -164,7 +164,7 @@ const incrementQuantityApi = async (
   }
 
   const newQuantity = currentQuantity < 5 ? currentQuantity + 1 : 5;
-
+  console.log("new quantity: ", newQuantity);
   try {
     const response = await fetch(`http://localhost:3001/api/cart/${itemId}`, {
       method: "PATCH",
