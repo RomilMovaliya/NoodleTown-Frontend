@@ -23,10 +23,8 @@ import { useNavigate } from "react-router-dom";
 
 const DeliveryDetails = ({ open, onClose }) => {
   const userId = Cookies.get("userId");
-
   const navigate = useNavigate();
 
-  // Fetch addresses from API
   const { data: savedAddresses = [] } = useQuery({
     queryKey: ["address", userId],
     queryFn: () => getAddress(userId!),
@@ -45,9 +43,7 @@ const DeliveryDetails = ({ open, onClose }) => {
     phone: "",
   });
 
-  // Reset on close
   useEffect(() => {
-
     if (!open) {
       setSelectedAddressId("");
       setForm({
@@ -60,7 +56,6 @@ const DeliveryDetails = ({ open, onClose }) => {
         phone: "",
       });
     }
-
   }, [open]);
 
   const handleSelectChange = (e) => {
@@ -76,7 +71,7 @@ const DeliveryDetails = ({ open, onClose }) => {
         state: selected.state || "",
         pinCode: selected.pinCode || "",
         country: selected.country || "",
-        phone: selected.phone || "", // Phone is not coming from saved address
+        phone: selected.phone || "",
       });
     }
   };
@@ -91,30 +86,33 @@ const DeliveryDetails = ({ open, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    generateOrder(userId!).then((orderId) => {
-      addOrderItem(userId!, orderId);
-    });
+    const payload = {
+      ...form,
+      user_id: userId, // ✅ Add userId just before submission
+    };
 
     try {
+      const orderId = await generateOrder(userId);
+      await addOrderItem(userId, orderId);
+
       const response = await fetch("http://localhost:3001/api/delivery/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
       console.log("Submitted data:", data);
 
-      onClose(); // close the dialog
-      navigate("/order"); // navigate to order page
+      onClose();
+      navigate("/order");
 
     } catch (error) {
       console.error("Error submitting delivery details:", error);
     }
   };
-
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -232,7 +230,6 @@ const DeliveryDetails = ({ open, onClose }) => {
           >
             Confirm Order
           </Button>
-
         </DialogActions>
       </form>
     </Dialog>
