@@ -9,11 +9,14 @@ import { logout, setUsers } from "../store/authSlice";
 import { RootState } from "../main";
 import Cookies from "js-cookie";
 import { Link } from "react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { passwordReset } from "../utils/auth";
+import { Password } from "@mui/icons-material";
+import { toast } from "react-toastify";
+
 
 const ProfilePage = () => {
-  const { currentUser, isLoggedIn } = useSelector(
-    (state: RootState) => state.user
-  );
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -22,60 +25,84 @@ const ProfilePage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const userId = Cookies.get("userId")
 
+  const name = Cookies.get("name");
+  const email = Cookies.get("email");
+
+
+
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => passwordReset(email || "", newPassword),
+  });
+
+
+  const [authCheckTick, setAuthCheckTick] = useState(0);
+
+  // Check auth token and redirect if missing
   useEffect(() => {
     const token = Cookies.get("authToken");
     if (!token) {
       dispatch(logout());
       navigate("/auth", { replace: true });
     }
-  }, [dispatch, navigate]);
+  }, [authCheckTick, dispatch, navigate]);
+
+  // Every 5 seconds, increment tick to trigger re-render
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAuthCheckTick((prev) => prev + 1);
+    }, 2000);
+
+    return () => clearInterval(interval); // cleanup
+  }, []);
+
 
   const handleLogout = () => {
     dispatch(logout()); // Dispatch to log out the user
     Cookies.remove("isLoggedIn"); // Remove isLoggedIn from cookies
     Cookies.remove("userId"); // Remove userId from cookies
     Cookies.remove("authToken"); // Remove authToken from cookies
+    Cookies.remove("name");
+    Cookies.remove("email");
+    Cookies.remove("AccessToken");
+
     navigate("/auth/");
   };
 
-  const handlePasswordReset = () => {
-    if (currentUser?.password !== currentPassword) {
-      setErrorMessage("Current password is incorrect.");
-      return;
-    }
+  const handlePasswordReset = async () => {
+    setErrorMessage(""); // clear previous error
+
+    // if (currentUser?.password !== currentPassword) {
+    //   setErrorMessage("Current password is incorrect.");
+    //   return;
+    // }
+
+
+
     if (newPassword !== confirmNewPassword) {
       setErrorMessage("New passwords do not match.");
       return;
     }
 
-    // Update password in the users array
-    const users = JSON.parse(window.localStorage.getItem("users") || "[]");
+    try {
+      const data = await resetPasswordMutation.mutateAsync();
 
-    // Find the current user
-    const updatedUsers = users.map((user: any) => {
-      if (user.email === currentUser?.email) {
-        return { ...user, password: newPassword }; // Update password
+      if (data) {
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
+        toast.success("Password updated successfully!")
+      } else {
+        setErrorMessage(data?.message || "Password update failed.");
       }
-      return user;
-    });
-
-    // Update the users list in localStorage
-    window.localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    // Update state in Redux (to reflect the change in the UI)
-    dispatch(setUsers(updatedUsers));
-
-    // Clear form fields
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmNewPassword("");
-    setErrorMessage("");
-    alert("Password updated successfully!");
-
-
-
+    } catch (err) {
+      console.error("Password reset error:", err);
+      setErrorMessage("Something went wrong. Please try again.");
+    }
   };
+
 
   return (
     <Box
@@ -118,10 +145,10 @@ const ProfilePage = () => {
         </Box>
 
         <Typography fontSize={20} fontWeight={500}>
-          dency
+          {name}
         </Typography>
         <Typography fontSize={16} color="gray">
-          dency123@gmail.com
+          {email}
         </Typography>
 
 
@@ -165,7 +192,7 @@ const ProfilePage = () => {
           Update Password
         </Typography>
 
-        <Typography mt={4}>Current Password</Typography>
+        {/* <Typography mt={4}>Current Password</Typography>
         <TextField
           fullWidth
           sx={{
@@ -177,7 +204,7 @@ const ProfilePage = () => {
           margin="normal"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-        />
+        /> */}
 
         <Typography>New Password</Typography>
         <TextField
@@ -191,6 +218,20 @@ const ProfilePage = () => {
           margin="normal"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
+        />
+
+        <Typography>Confirm New Password</Typography>
+        <TextField
+          fullWidth
+          sx={{
+            mt: 1,
+          }}
+          label="Confirm New Password"
+          type="password"
+          variant="outlined"
+          margin="normal"
+          value={confirmNewPassword}
+          onChange={(e) => setConfirmNewPassword(e.target.value)}
         />
 
         <Button

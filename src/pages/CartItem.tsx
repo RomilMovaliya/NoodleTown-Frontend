@@ -55,8 +55,6 @@ const CartItem = () => {
   });
 
 
-
-
   const handleIncrement = (id: number, quantity: number) => {
     dispatch(incrementQuantity(id));
     incrementQuantityApi(id, quantity)

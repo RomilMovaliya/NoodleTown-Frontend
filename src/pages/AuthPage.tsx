@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { yellow } from "@mui/material/colors";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { setUsers, setCurrentUser, setLogin } from "../store/authSlice";
+import { setUsers, setCurrentUser, setLogin, setProfileInfo } from "../store/authSlice";
 import { toast } from "react-toastify";
 import { RootState } from "../store/store";
 import Cookies from "js-cookie";
@@ -80,20 +80,25 @@ const AuthPage = () => {
       setShowAlert(true);
       // If login is successful, set the token and userId in cookies
       const { token, userId } = data;
+      const uname = data.name;
+      const uemail = data.email;
 
       // Set the token in the cookies with an expiration time of 7 days
       Cookies.set("authToken", token, { expires: 10 / (24 * 60) });
       Cookies.set("userId", userId, { expires: 10 / (24 * 60) });
       Cookies.set("isLoggedIn", "true", { expires: 10 / (24 * 60) });
+      Cookies.set("email", uemail, { expires: 10 / (24 * 60) });
+      Cookies.set("name", uname, { expires: 10 / (24 * 60) })
 
       dispatch(setLogin(true));
 
       console.log("Login response:", data);
 
-      setTimeout(() => {
-        setShowAlert(false);
-        navigate("/profile");
-      }, 3000);
+
+
+      setShowAlert(false);
+      navigate("/profile");
+
     } catch (error) {
       toast.error("Invalid credentials or login failed.");
     }

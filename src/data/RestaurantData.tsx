@@ -64,7 +64,7 @@ export const restaurantsData = [
         item: `Pizza, Fast Food, Beverages`,
         cost: `500rs per 2 person`,
         area: `parvat patiya, Surat`,
-        time: `10am - 12pm`,
+        time: `7pm - 12pm`,
         category: 'coffee'
     }
 ];

@@ -141,7 +141,7 @@ const OrderOnline = () => {
     }
 
     const existingItem = itemsInCart.find(
-      (cartItem) => cartItem.id === item.id
+      (cartItem) => cartItem.name === item.name
     );
 
     if (existingItem && existingItem.quantity >= 5) {
@@ -155,6 +155,7 @@ const OrderOnline = () => {
       addItemToCartApi(item, userId)
         .then(() => {
           dispatch({ type: "ADD_ITEM_TO_CART_SUCCESS", payload: item });
+          refetch();
         })
         .catch((error) => {
           console.error("Failed to add item to cart:", error);
@@ -239,6 +240,13 @@ const OrderOnline = () => {
     const item = items.find((item) => item.name === name)
     return item ? item.quantity : 0;
   }
+
+  //   const fetchIdfunc = (name: string) => {
+  //     const item = items.find((item) => item.name === name)
+  //     console.log("fetchIdfunc", item);
+  //     return item ? item.cartitem_id
+  //  : 0;
+  //   }
 
   // --------------------------------------------------------------------------------------------------------------
   return (
@@ -340,9 +348,9 @@ const OrderOnline = () => {
             >
               {filteredItems.map((item, index) => {
                 const isItemInCart = matchArray[index];
-
                 const ItemQuantity = fetchQuantityfunc(item.name);
-
+                // const ItemId = fetchIdfunc(item.name);
+                // console.log("ItemId is: ", ItemId);
                 const itemInCart = itemsInCart.find(
                   (cartItem) => cartItem.name === item.name
                 ); // Get the item from cart
@@ -475,7 +483,7 @@ const OrderOnline = () => {
                                 color: "white",
                               }}
                               onClick={() =>
-                                handleIncrement(item.id, itemInCart ? itemInCart.quantity : 0)
+                                handleIncrement(item.id, ItemQuantity)
                               }
                               disabled={ItemQuantity === 5}
                             >
