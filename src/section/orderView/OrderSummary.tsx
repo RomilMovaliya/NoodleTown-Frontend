@@ -51,11 +51,16 @@ const OrderSummary = () => {
         return () => clearInterval(interval); // cleanup
     }, []);
 
-
+    console.log(userId)
     console.log("savedAddresses", savedAddresses);
-    console.log(savedAddresses[1].order.order_id)
-    console.log(savedAddresses.find((o) => o.order.order_id === id));
-    const data = savedAddresses.find((o: { order: { order_id: string }; }) => o.order.order_id === id);
+    //console.log(savedAddresses[0].order)
+    //console.log(savedAddresses.find((o) => o.order.order_id === id));
+    const data = savedAddresses.find((o: { order: { order_id: string }; }) => o.order?.order_id === id);
+    console.log(data);
+
+
+    const matchedId = myOrders?.data?.find((o) => o.order_id === id);
+    console.log(matchedId);
 
 
     return (
@@ -126,14 +131,14 @@ const OrderSummary = () => {
 
                 <p style={{
                     backgroundColor: "#E6F4EA",
-                    color: "red",
+                    color: "#4CAF50",
                     padding: "5px 15px",
                     borderRadius: "20px",
                     fontSize: "15px",
                     fontWeight: "500",
                     fontFamily: "Poppins",
                     textTransform: "uppercase",
-                }}>PENDING</p>
+                }}>SUCCESS</p>
 
             </Box >
 
@@ -261,9 +266,9 @@ const OrderSummary = () => {
                     <Stack sx={{
                         color: "#7F8C8D",
                     }}>
-                        <p >Total : ₹{myOrders?.data[0].price}</p>
+                        <p >Total : ₹{matchedId?.price}</p>
                         <p >Discount : ₹0</p>
-                        <p >Net Total : ₹{myOrders?.data[0].price}</p>
+                        <p >Net Total : ₹{matchedId?.price}</p>
                     </Stack>
 
                 </Stack>

@@ -4,17 +4,14 @@ import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOrderData } from "../utils/address";
-import { makePayment } from "../section/orderView/PaymentSection";
+import { updateOrderId } from "../utils/deliverydetail";
 
 const OrderPage = () => {
-    const [isPaid, setIsPaid] = useState(false); // initial state: not paid
-    const userId = Cookies.get("userId");
 
+    const userId = Cookies.get("userId");
+    updateOrderId(userId, localStorage.getItem("orderId"));
     const [authCheckTick, setAuthCheckTick] = useState(0);
-    const handlePayment = (orderId: string, userId: string, price: number) => {
-        makePayment(orderId, userId, price);
-        setIsPaid(true); // update state to paid
-    };
+
 
     const { data: myOrders } = useQuery({
         queryKey: ["myOrders", userId],
@@ -125,8 +122,8 @@ const OrderPage = () => {
 
                                 <Stack direction="column" spacing={1} alignItems="center">
                                     <p style={{
-                                        backgroundColor: isPaid ? "#E6F4EA" : "#FFF3E0",
-                                        color: isPaid ? "#4CAF50" : "#FB8C00",
+                                        backgroundColor: "#FFF3E0",
+                                        color: "#FB8C00",
                                         padding: "5px 10px",
                                         borderRadius: "5px",
                                         fontSize: "12px",
@@ -134,7 +131,7 @@ const OrderPage = () => {
                                         fontFamily: "Poppins",
                                         textTransform: "uppercase",
                                     }}>
-                                        {isPaid ? "Placed" : "Not Placed"}
+                                        Placed
                                     </p>
 
                                 </Stack>
@@ -143,17 +140,9 @@ const OrderPage = () => {
                                     <p>₹{order?.price}</p>
                                     <p>{order?.quantity} Products</p>
 
-                                    {!isPaid && (
-                                        <Button
 
-                                            variant="contained"
-                                            size="small"
-                                            sx={{ textTransform: "none", marginTop: "10px", fontSize: "12px", backgroundColor: "orange" }}
-                                            onClick={() => handlePayment(order?.order_id, userId ?? "", order?.price)}
-                                        >
-                                            Pay Now
-                                        </Button>
-                                    )}
+
+
                                 </Stack>
 
 
