@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Stack, Button } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOrderData } from "../utils/address";
+import { makePayment } from "../section/orderView/PaymentSection";
 
 const OrderPage = () => {
     const [isPaid, setIsPaid] = useState(false); // initial state: not paid
     const userId = Cookies.get("userId");
-    const handlePayment = () => {
-        // simulate payment processing
+
+    const [authCheckTick, setAuthCheckTick] = useState(0);
+    const handlePayment = (orderId: string, userId: string, price: number) => {
+        makePayment(orderId, userId, price);
         setIsPaid(true); // update state to paid
     };
 
@@ -18,6 +21,25 @@ const OrderPage = () => {
         queryFn: () => fetchOrderData(userId!),
         enabled: !!userId,
     });
+
+    const navigate = useNavigate();
+    // Check auth token and redirect if missing
+    useEffect(() => {
+        const token = Cookies.get("authToken");
+        if (!token) {
+
+            navigate("/auth", { replace: true });
+        }
+    }, [authCheckTick, navigate]);
+
+    // Every 1 seconds, increment tick to trigger re-render
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setAuthCheckTick((prev) => prev + 1);
+        }, 1000);
+
+        return () => clearInterval(interval); // cleanup
+    }, []);
 
     return (
         <>
@@ -74,7 +96,7 @@ const OrderPage = () => {
 
 
 
-                        <Link to="/order/1" style={{ textDecoration: "none", color: "black" }}>
+                        <Link to={`/order/${order?.order_id}`} style={{ textDecoration: "none", color: "black" }}>
                             <Box sx={{
                                 display: "flex",
                                 justifyContent: "space-between",
@@ -127,7 +149,7 @@ const OrderPage = () => {
                                             variant="contained"
                                             size="small"
                                             sx={{ textTransform: "none", marginTop: "10px", fontSize: "12px", backgroundColor: "orange" }}
-                                            onClick={handlePayment}
+                                            onClick={() => handlePayment(order?.order_id, userId ?? "", order?.price)}
                                         >
                                             Pay Now
                                         </Button>

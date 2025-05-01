@@ -85,10 +85,7 @@ const CartItem = () => {
       });
   };
 
-  const totalPrice = items.reduce(
-    (total: number, item: any) => total + item.price * item.quantity,
-    0
-  );
+
 
   if (isLoading) {
     return (
@@ -121,7 +118,10 @@ const CartItem = () => {
     );
   }
 
-
+  const totalPrice = items.reduce(
+    (total: number, item: any) => total + item.price * item.quantity,
+    0
+  );
 
 
 
@@ -175,7 +175,8 @@ const CartItem = () => {
 
       </Stack>
 
-      <DeliveryDetails open={openDialog} onClose={handleDialogClose} />
+      <DeliveryDetails price={totalPrice} open={openDialog} onClose={handleDialogClose} />
+
       {items.length === 0 ? (
         <Box
           sx={{

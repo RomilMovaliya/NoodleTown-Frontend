@@ -106,3 +106,9 @@ export const generateOrder = async (user_id: string) => {
     }
 };
 
+const paymentStatus=async()=>{
+    const response=await fetch('http://localhost/3001/api/payment');
+    const result=response.json();
+    return result;
+}
+

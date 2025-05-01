@@ -9,6 +9,8 @@ export const ROUTES = {
     CATEGORIES: "/categories",
     ORDER: "/order",
     ORDERSUMMARY: "/order/:id",
+    PAYMENTFAIL: "/paymentfail/",
+    PAYMENTSUCCESS: "/payment-success",
     SEARCH: "/search/:selectedCity/:searchValue",
     NOT_FOUND: "*",
 };

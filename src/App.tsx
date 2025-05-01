@@ -18,6 +18,8 @@ import OrderPage from "./pages/OrderPage";
 import OrderSummary from "./section/orderView/OrderSummary";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import PaymentFail from "./section/orderView/PaymentFail";
+import PaymentSuccess from "./section/orderView/PaymentSuccess";
 
 function App() {
   const queryClient = new QueryClient();
@@ -38,6 +40,8 @@ function App() {
             <Route path={ROUTES.AUTH} element={<AuthPage />} />
             <Route path={ROUTES.ORDER} element={<OrderPage />} />
             <Route path={ROUTES.ORDERSUMMARY} element={<OrderSummary />} />
+            <Route path={ROUTES.PAYMENTFAIL} element={<PaymentFail />} />
+            <Route path={ROUTES.PAYMENTSUCCESS} element={<PaymentSuccess />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
