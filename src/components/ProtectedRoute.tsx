@@ -4,13 +4,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 
 const ProtectedRoute = () => {
-    const userId = Cookies.get("userId");
-
-    // const user = useSelector((state: RootState) => state.auth.user);
-
-    // console.log("user?.userId", user?.userId);
-    console.log("protected route ki under userid is: ", userId);
-    return userId ? <Outlet /> : <Navigate to="/auth" replace={true} />;
+    const token = Cookies.get("authToken");
+    console.log("protected route ki under token is: ", token);
+    return token ? <Outlet /> : <Navigate to="/auth" replace={true} />;
 }
 
 export default ProtectedRoute;

@@ -90,7 +90,7 @@ const ProfilePage = () => {
     // Cookies.remove("email");
     // Cookies.remove("AccessToken");
 
-    navigate("/auth/");
+    navigate("/auth");
   };
 
   const handlePasswordReset = async () => {
@@ -197,20 +197,6 @@ const ProfilePage = () => {
         <Typography fontSize={30} fontWeight={600} textAlign="center">
           Update Password
         </Typography>
-
-        {/* <Typography mt={4}>Current Password</Typography>
-        <TextField
-          fullWidth
-          sx={{
-            mt: 1,
-          }}
-          label="Current Password"
-          type="password"
-          variant="outlined"
-          margin="normal"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        /> */}
 
         <Typography>New Password</Typography>
         <TextField

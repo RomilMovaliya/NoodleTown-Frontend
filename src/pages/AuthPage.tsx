@@ -4,18 +4,19 @@ import { yellow } from "@mui/material/colors";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import { Cookie } from "@mui/icons-material";
 import axiosInstance from "../utils/axiosInstance";
-import { useDispatch } from "react-redux";
-import { setUsers } from "../store/authSlice";
-
-
-// const dispatch = useDispatch();
 
 const AuthPage = () => {
 
+  useEffect(() => {
+    const userId = Cookies.get("userId");
+    console.log("user id in login page", userId);
+    if (userId) {
+      navigate("/profile");
+    }
+  })
+
   const [email, setEmail] = useState("");
-  // useSelector((state: RootState) => state.user);
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,17 +24,7 @@ const AuthPage = () => {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const navigate = useNavigate();
-  //const dispatch = useDispatch();
-  //const userId = Cookies.get("userId");
-  //const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
 
-  // useEffect(() => {
-  //   if (userId) {
-  //     navigate("/profile");
-  //   }
-  // }, []);
-
-  //
   const registerUser = async (userData: {
     email: string;
     password: string;
@@ -64,37 +55,18 @@ const AuthPage = () => {
       throw new Error("Login failed!");
     }
 
-
     toast.success("Login successful!");
     setShowAlert(true);
+
     // If login is successful, set the token and userId in cookies
     const { token, userId } = response.data;
-
-    // dispatch(setUsers({
-    //   name: response.data.name,
-    //   email: response.data.email,
-    //   userId: response.data.userId
-    // }))
-
-
-
-    //Set the token in the cookies with an expiration time of 7 days
-    Cookies.set("authToken", token);
-    Cookies.set("userId", userId);
-    // Cookies.set("isLoggedIn", "true", { expires: 1 / 60 });
-    // Cookies.set("email", uemail, { expires: 1 / 60 });
-    // Cookies.set("name", uname, { expires: 1 / 60 })
-
-
+    Cookies.set("authToken", token, { expires: 5 / (60 * 24) });
+    Cookies.set("userId", userId, { expires: 5 / (60 * 24) });
 
     console.log("Login response:", response.data);
-
-
-
     setShowAlert(false);
+
     navigate("/profile");
-
-
   };
 
   const onSubmitHandler = (e: FormEvent<HTMLFormElement>) => {

@@ -2,6 +2,9 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
+
+
+
 const axiosInstance = axios.create({
     baseURL: "http://localhost:3001/api", // your backend base URL
     withCredentials: true, // important for sending cookies\
@@ -15,6 +18,7 @@ axiosInstance.interceptors.request.use(
     (config) => {
         const token = Cookies.get("authToken");
 
+        console.log("token in interceptor", token)
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
