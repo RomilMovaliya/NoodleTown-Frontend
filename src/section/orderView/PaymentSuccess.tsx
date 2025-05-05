@@ -3,11 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { addOrderItem, generateOrder } from "../../utils/cartItem";
 import Cookies from "js-cookie";
-import { updateOrderId } from "../../utils/deliverydetail";
 export const PaymentSuccess = () => {
     const navigate = useNavigate();
     const hasVerified = useRef(false);
-
+    const page = "paymentSuccess";
     const userId = Cookies.get("userId");
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -38,7 +37,6 @@ export const PaymentSuccess = () => {
 
             if (data.status === "success") {
                 const orderId = await generateOrder(userId);
-                localStorage.setItem("orderId", orderId);
 
                 await addOrderItem(userId, orderId);
 
@@ -53,13 +51,9 @@ export const PaymentSuccess = () => {
                 });
 
                 const data = await response.json();
+                console.log("Submitted data:", data, "in page: ", page);
 
 
-            }
-            if (data.success === "success") {
-                console.log("before", localStorage.getItem("orderId"))
-                updateOrderId(userId, localStorage.getItem("orderId"));
-                console.log("after", localStorage.getItem("orderId"))
             }
             setMessage(data.status === "success" ? "yes" : "fail");
             localStorage.removeItem("deliveryForm");

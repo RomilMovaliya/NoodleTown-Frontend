@@ -5,32 +5,32 @@ import { NavLink } from 'react-router-dom';
 import React from 'react';
 import { useLocation } from 'react-router';
 import { AccountCircle } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
-
+import { useQuery } from '@tanstack/react-query';
+import { fetchCartItems } from '../../utils/cartItem';
+import Cookies from 'js-cookie';
 
 const Hero: React.FC = () => {
 
 
     const location = useLocation(); // Get the current location
+    const userId = Cookies.get("userId");
+    // const cartItemCount = useSelector((state: RootState) => state.cart.items.length);
 
-    const cartItemCount = useSelector((state: RootState) => state.cart.items.length);
-
-    const { isLoggedIn } = useSelector((state: RootState) => state.user);
+    //const { isLoggedIn } = useSelector((state: RootState) => state.user);
 
     let authFlag = false;
     let redirectVar = '/auth';
-    if (isLoggedIn) {
-        authFlag = true;
-    }
+    // if (isLoggedIn) {
+    //     authFlag = true;
+    // }
 
 
-    if (authFlag === true) {
-        redirectVar = '/profile';
-        console.log(redirectVar)
-    } else {
-        console.log(redirectVar);
-    }
+    // if (authFlag === true) {
+    //     redirectVar = '/profile';
+    //     console.log(redirectVar)
+    // } else {
+    //     console.log(redirectVar);
+    // }
 
     // Set colors based on the current route
     const isCategoriesPage = location.pathname === '/categories' || location.pathname.startsWith('/detailView') || location.pathname.startsWith('/order') || location.pathname.startsWith('/search') || location.pathname.startsWith('/categories') || location.pathname.startsWith('/restaurant/') || location.pathname === '/cart' || location.pathname === '/profile' || location.pathname === '/auth' || location.pathname === '/detailView/:id';
@@ -38,6 +38,17 @@ const Hero: React.FC = () => {
     const ProfileColor = isCategoriesPage ? '#FFC300' : 'white';
     const navLinkColor = isCategoriesPage ? '#FFC300' : '#FFC300';
     const iconButtonColor = isCategoriesPage ? '#FFC300' : 'white';
+
+    const {
+        data: items = [],
+
+    } = useQuery({
+        queryKey: ["cartItems", userId],
+        queryFn: fetchCartItems,
+        enabled: !!userId,
+    });
+
+    const countItemInCart = items.length;
 
 
     return (
@@ -125,7 +136,7 @@ const Hero: React.FC = () => {
                                 <NavLink style={{ textDecoration: 'none', color: manuColor }} to='/cart'>
                                     <IconButton>
                                         <Badge
-                                            badgeContent={cartItemCount}
+                                            badgeContent={countItemInCart}
                                             color='error' // 'error' is still required for the logic, but we will customize the badge itself
                                             sx={{
                                                 '.MuiBadge-dot': {

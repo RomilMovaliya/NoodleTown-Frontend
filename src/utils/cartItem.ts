@@ -45,7 +45,7 @@ export const addOrderItem = async (user_id: string, order_id: string) => {
 
         // Now we need to send a POST request for each order item
         const responses = await Promise.all(
-            orderItems.map(async (orderItem) => {
+            orderItems.map(async (orderItem: any) => {
                 const response = await fetch("http://localhost:3001/api/orderItem/", {
                     method: "POST",
                     headers: {
@@ -106,9 +106,9 @@ export const generateOrder = async (user_id: string) => {
     }
 };
 
-const paymentStatus=async()=>{
-    const response=await fetch('http://localhost/3001/api/payment');
-    const result=response.json();
+const paymentStatus = async () => {
+    const response = await fetch('http://localhost/3001/api/payment');
+    const result = response.json();
     return result;
 }
 

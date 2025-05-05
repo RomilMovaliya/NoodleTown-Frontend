@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import {
-    brand1, brand2, brand3, brand4, brand5, brand6
-} from '../../assets/index';
-import { Box, Button, Stack, Typography } from '@mui/material'
+import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useParams } from 'react-router';
-import { restaurantsData } from '../../data/RestaurantData';
-
+import { useQuery } from '@tanstack/react-query';
+import { getData } from '../../utils/detailview';
 interface ItemDetailType {
     id: number,
     image: string,
@@ -15,108 +12,44 @@ interface ItemDetailType {
     area: string,
     time: string,
     category?: string
-
 }
-
 
 const HeroSection: React.FC = () => {
 
-
-
     const { id } = useParams<{ id: string }>();
+    const [allBrands, setAllBrands] = useState<ItemDetailType[]>([]);
 
-
-
-    interface BrandImg {
-        id: number,
-        image: string,
-
-    }
-
-    const [selectedBrandImg, setSelectedBrandImg] = useState<BrandImg | null>(null);
-
-    const brandImg: BrandImg[] = [
-        {
-            id: 1,
-            image: brand1,
-        },
-
-        {
-            id: 2,
-            image: brand2,
-        },
-
-        {
-            id: 3,
-            image: brand4,
-        },
-
-        {
-            id: 4,
-            image: brand3,
-        },
-
-        {
-            id: 5,
-            image: brand5,
-        },
-
-        {
-            id: 6,
-            image: brand6,
-        }
-
-
-    ];
-
-
-    useEffect(() => {
-        const barndId = parseInt(id || '0');
-        const brand = brandImg.find((item) => barndId === item.id);
-        setSelectedBrandImg(brand || null);
-    }, [id]);
-
-
-
-    const [selectedIndex, setSelectedIndex] = useState(0);  // Initialize as null to have no button selected initially
     const [selectedBrand, setSelectedBrand] = useState<ItemDetailType | null>(null);
 
+    const { data: getmyData, isLoading: isdataloading } = useQuery({
+        queryKey: ["getdata"],
+        queryFn: getData
+    });
 
-    const handleButtonClick = (index: number) => {
-        setSelectedIndex(index);  // Set the selected index when a button is clicked
-    }
-
-
-
-    const isOpenNow = () => {
-        const currentTime = new Date();
-        const openingTime = new Date();
-        const closingTime = new Date();
-
-        const [openingHour, openingMinute] = selectedBrand?.time.split(' - ')[0].split('am')[0].split(':').map(Number) || [0, 0];
-        const [closingHour, closingMinute] = selectedBrand?.time.split(' - ')[1].split('pm')[0].split(':').map(Number) || [0, 0];
-
-        openingTime.setHours(openingHour, openingMinute);
-        closingTime.setHours(closingHour + 12, closingMinute);
+    useEffect(() => {
+        if (getmyData) {
+            setAllBrands(getmyData);
+        }
+    }, [getmyData]);
 
 
-        return currentTime >= openingTime && currentTime <= closingTime;
-    };
 
 
     useEffect(() => {
-        const barndId = parseInt(id || '0');
-        const brand = restaurantsData.find((item) => barndId === item.id);
-        setSelectedBrand(brand || null);
-    }, [id]);
+        const brandId = parseInt(id || '1');
+        console.log(brandId)
+        const selectedItem = allBrands.find((item) => brandId === item.id);
+        setSelectedBrand(selectedItem || null);
+    }, [id, allBrands]);
 
-
-    if (!selectedBrand) {
-        return <Typography>No any Brand Found.</Typography>
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const handleButtonClick = (index: number) => {
+        setSelectedIndex(index);
     }
 
     return (
         <>
+
             <Box sx={{ display: 'flex', justifyContent: 'center', margin: '30px' }}>
                 <Stack sx={{
                     flexDirection: {
@@ -130,119 +63,139 @@ const HeroSection: React.FC = () => {
                         flexDirection: 'column'
                     },
                 }} alignItems={'center'}>
-                    <Box component='img' src={selectedBrandImg?.image} sx={{
-                        height: '180px',
-                        width: '180px',
-                        padding: '10px',
+                    {isdataloading ? (
+                        <>
+                            <Skeleton variant="rectangular" width={180} height={180} sx={{ borderRadius: '10px', margin: '10px' }} />
+                            <Box>
+                                <Skeleton width={200} height={30} />
+                                <Skeleton width={150} height={20} />
+                                <Skeleton width={180} height={20} />
+                                <Skeleton width={220} height={20} />
+                                <Skeleton width={250} height={20} />
+                                <Stack direction="row" spacing={2} mt={1}>
+                                    <Skeleton variant="rectangular" width={100} height={36} />
+                                    <Skeleton variant="rectangular" width={100} height={36} />
+                                    <Skeleton variant="rectangular" width={100} height={36} />
+                                </Stack>
+                            </Box>
+                        </>
+                    ) : (
+                        <>
 
-                    }} />
-                    <Box>
-                        <Typography>
-                            {selectedBrand.name}
-                        </Typography>
-                        <Typography color='#999999'>
-                            {selectedBrand.item}
+                            <Box component='img' src={selectedBrand?.image} sx={{
+                                height: '180px',
+                                width: '180px',
+                                padding: '10px',
 
-                        </Typography>
-                        <Stack direction={'row'}>
-                            <Typography color='#999999'>
-                                Average Cost:
-                            </Typography>
+                            }} />
+                            <Box>
+                                <Typography>
+                                    {selectedBrand?.name}
+                                </Typography>
+                                <Typography color='#999999'>
+                                    {selectedBrand?.item}
 
-                            <Typography ml={1}>
-                                {selectedBrand.cost}
-                            </Typography>
-                        </Stack>
+                                </Typography>
+                                <Stack direction={'row'}>
+                                    <Typography color='#999999'>
+                                        Average Cost:
+                                    </Typography>
 
-                        <Typography color='#999999'>
-                            {selectedBrand.area}
+                                    <Typography ml={1}>
+                                        {selectedBrand?.cost}
+                                    </Typography>
+                                </Stack>
 
-                        </Typography>
+                                <Typography color='#999999'>
+                                    {selectedBrand?.area}
 
-                        <Typography >
-                            <Stack direction={'row'} spacing={2}>
+                                </Typography>
 
-                                <Box color='red'>{(!isOpenNow) ? 'Close Now' : 'Open Now'}</Box> <Box color='#999999'>{selectedBrand.time} (Today)</Box>
-                            </Stack>
-                        </Typography>
+                                <Typography >
+                                    <Stack direction={'row'} spacing={2}>
 
-                        <Stack direction={'row'}
-                            mt={1}
-                            spacing={{
-                                md: 2,
-                                lg: 2,
-                                sm: 2,
-                                xs: 1
-                            }}> {/* Added spacing between buttons */}
-                            {/* Button for "Order online" */}
-                            <Button
+                                        <Box color='red'>Open Now</Box> <Box color='#999999'>{selectedBrand?.time} (Today)</Box>
+                                    </Stack>
+                                </Typography>
 
-                                variant="outlined"
-                                onClick={() => handleButtonClick(0)}  // Set selectedIndex to 0 for "Order online"
-                                sx={{
-                                    borderColor: '#FFC300',
-                                    '&:hover': {
-                                        backgroundColor: '#FFA500',
-                                        color: 'white'
-                                    },
+                                <Stack direction={'row'}
+                                    mt={1}
+                                    spacing={{
+                                        md: 2,
+                                        lg: 2,
+                                        sm: 2,
+                                        xs: 1
+                                    }}> {/* Added spacing between buttons */}
+                                    {/* Button for "Order online" */}
+                                    <Button
 
-                                    bgcolor: selectedIndex === 0 ? "#FFA500" : "transparent", // Highlight if selected
-                                    color: selectedIndex === 0 ? "#fff" : "black",  // Text color change if selected
-                                    fontWeight: selectedIndex === 0 ? 'bold' : 'normal', // Emphasizing the selected item
-                                    '@media (max-width:600px)': {
-                                        fontSize: '10px'  // Corrected 'size' to 'fontSize'
-                                    },
+                                        variant="outlined"
+                                        onClick={() => handleButtonClick(0)}  // Set selectedIndex to 0 for "Order online"
+                                        sx={{
+                                            borderColor: '#FFC300',
+                                            '&:hover': {
+                                                backgroundColor: '#FFA500',
+                                                color: 'white'
+                                            },
 
-                                }}
-                            >
-                                Order online
-                            </Button>
+                                            bgcolor: selectedIndex === 0 ? "#FFA500" : "transparent", // Highlight if selected
+                                            color: selectedIndex === 0 ? "#fff" : "black",  // Text color change if selected
+                                            fontWeight: selectedIndex === 0 ? 'bold' : 'normal', // Emphasizing the selected item
+                                            '@media (max-width:600px)': {
+                                                fontSize: '10px'  // Corrected 'size' to 'fontSize'
+                                            },
 
-                            {/* Button for "Directions" */}
-                            <Button
-                                variant="outlined"
-                                onClick={() => handleButtonClick(1)}  // Set selectedIndex to 1 for "Directions"
-                                sx={{
-                                    borderColor: '#FFC300',
-                                    '&:hover': {
-                                        backgroundColor: '#FFA500',
-                                        color: 'white'
-                                    },
-                                    bgcolor: selectedIndex === 1 ? "#FFA500" : "transparent", // Highlight if selected
-                                    color: selectedIndex === 1 ? "#fff" : "black",  // Text color change if selected
-                                    fontWeight: selectedIndex === 1 ? 'bold' : 'normal', // Emphasizing the selected item
-                                    '@media (max-width:600px)': {
-                                        fontSize: '10px'  // Corrected 'size' to 'fontSize'
-                                    },
-                                }}
-                            >
-                                Directions
-                            </Button>
+                                        }}
+                                    >
+                                        Order online
+                                    </Button>
 
-                            {/* Button for "Share" */}
-                            <Button
-                                variant="outlined"
-                                onClick={() => handleButtonClick(2)}  // Set selectedIndex to 2 for "Share"
-                                sx={{
-                                    borderColor: '#FFC300',
-                                    '&:hover': {
-                                        backgroundColor: '#FFA500',
-                                        color: 'white'
-                                    },
-                                    bgcolor: selectedIndex === 2 ? "#FFA500" : "transparent", // Highlight if selected
-                                    color: selectedIndex === 2 ? "#fff" : "black",  // Text color change if selected
-                                    fontWeight: selectedIndex === 2 ? 'bold' : 'normal', // Emphasizing the selected item
-                                    '@media (max-width:600px)': {
-                                        fontSize: '10px'  // Corrected 'size' to 'fontSize'
-                                    },
-                                }}
-                            >
-                                Share
-                            </Button>
-                        </Stack>
-                    </Box>
+                                    {/* Button for "Directions" */}
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => handleButtonClick(1)}  // Set selectedIndex to 1 for "Directions"
+                                        sx={{
+                                            borderColor: '#FFC300',
+                                            '&:hover': {
+                                                backgroundColor: '#FFA500',
+                                                color: 'white'
+                                            },
+                                            bgcolor: selectedIndex === 1 ? "#FFA500" : "transparent", // Highlight if selected
+                                            color: selectedIndex === 1 ? "#fff" : "black",  // Text color change if selected
+                                            fontWeight: selectedIndex === 1 ? 'bold' : 'normal', // Emphasizing the selected item
+                                            '@media (max-width:600px)': {
+                                                fontSize: '10px'  // Corrected 'size' to 'fontSize'
+                                            },
+                                        }}
+                                    >
+                                        Directions
+                                    </Button>
 
+                                    {/* Button for "Share" */}
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => handleButtonClick(2)}  // Set selectedIndex to 2 for "Share"
+                                        sx={{
+                                            borderColor: '#FFC300',
+                                            '&:hover': {
+                                                backgroundColor: '#FFA500',
+                                                color: 'white'
+                                            },
+                                            bgcolor: selectedIndex === 2 ? "#FFA500" : "transparent", // Highlight if selected
+                                            color: selectedIndex === 2 ? "#fff" : "black",  // Text color change if selected
+                                            fontWeight: selectedIndex === 2 ? 'bold' : 'normal', // Emphasizing the selected item
+                                            '@media (max-width:600px)': {
+                                                fontSize: '10px'  // Corrected 'size' to 'fontSize'
+                                            },
+                                        }}
+                                    >
+                                        Share
+                                    </Button>
+                                </Stack>
+                            </Box>
+                        </>
 
+                    )}
                 </Stack>
 
 

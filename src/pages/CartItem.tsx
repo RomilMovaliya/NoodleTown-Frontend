@@ -1,10 +1,10 @@
 import { useDispatch } from "react-redux";
 import {
-  decrementQuantity,
+
   decrementQuantityApi,
-  incrementQuantity,
+
   incrementQuantityApi,
-  removeItem,
+
   removeItemFromCartApi,
 } from "../store/cartSlice";
 import { toast } from "react-toastify";
@@ -20,15 +20,10 @@ import { setLogin } from "../store/authSlice";
 
 const CartItem = () => {
 
-  const dispatch = useDispatch();
+  //const dispatch = useDispatch();
   const userId = Cookies.get("userId");
 
-  useEffect(() => {
-    const userId = Cookies.get("userId");
-    if (userId) {
-      dispatch(setLogin(true)); // You need to define this action
-    }
-  }, []);
+
   const [openDialog, setOpenDialog] = useState(false);
 
   const handleDialogOpen = () => setOpenDialog(true);
@@ -54,10 +49,11 @@ const CartItem = () => {
     enabled: !!userId,
   });
 
+  console.log("cart items:", items);
 
-  const handleIncrement = (id: number, quantity: number) => {
-    dispatch(incrementQuantity(id));
-    incrementQuantityApi(id, quantity)
+
+  const handleIncrement = (id: string) => {
+    incrementQuantityApi(id)
       .then(() => refetch())
       .catch((error) => {
         console.error("Failed to update item in cart:", error);
@@ -65,8 +61,8 @@ const CartItem = () => {
       });
   };
 
-  const handleDecrement = (id: number, quantity: number) => {
-    dispatch(decrementQuantity(id));
+  const handleDecrement = (id: string, quantity: number) => {
+
     decrementQuantityApi(id, quantity)
       .then(() => refetch())
       .catch((error) => {
@@ -75,8 +71,8 @@ const CartItem = () => {
       });
   };
 
-  const handleRemoveItem = (id: number) => {
-    dispatch(removeItem(id));
+  const handleRemoveItem = (id: string) => {
+
     removeItemFromCartApi(id)
       .then(() => refetch())
       .catch((error) => {
@@ -321,7 +317,7 @@ const CartItem = () => {
                   spacing={1}
                 >
                   <Button
-                    onClick={() => handleDecrement(item.id, item.quantity)}
+                    onClick={() => handleDecrement(item.cartitem_id, item.quantity)}
                     sx={{ color: "black", fontSize: "20px" }}
                   >
                     -
@@ -337,7 +333,7 @@ const CartItem = () => {
                     {item.quantity}
                   </Typography>
                   <Button
-                    onClick={() => handleIncrement(item.id, item.quantity)}
+                    onClick={() => handleIncrement(item.cartitem_id)}
                     sx={{
                       backgroundColor: "#FFA500",
                       color: "white",
@@ -391,7 +387,7 @@ const CartItem = () => {
                     marginTop: "20px",
                     marginBottom: "20px",
                   }}
-                  onClick={() => handleRemoveItem(item.id)}
+                  onClick={() => handleRemoveItem(item.cartitem_id)}
                 >
                   Remove from Cart
                 </Button>

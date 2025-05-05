@@ -1,4 +1,3 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
 // Interface for CartItem
@@ -11,72 +10,6 @@ interface CartItem {
   description: string;
 }
 
-// Interface for CartState
-interface CartState {
-  items: CartItem[];
-  quantity: number;
-}
-
-// Initial state for cart
-const initialState: CartState = {
-  items: [],
-  quantity: 0,
-};
-
-// Slice for managing cart actions
-const cartSlice = createSlice({
-  name: "cart",
-  initialState,
-  reducers: {
-    addItem: (state, action: PayloadAction<CartItem>) => {
-      const existingItem = state.items.find(
-        (item) => item.id === action.payload.id
-      );
-      if (existingItem) {
-        // If the item exists and quantity is less than 5, increase the quantity
-        if (existingItem.quantity < 5) {
-          existingItem.quantity += 1;
-        }
-      } else {
-        state.items.push({ ...action.payload, quantity: 1 });
-      }
-    },
-
-    removeItem: (state, action: PayloadAction<number>) => {
-      const item = state.items.find((item) => item.id === action.payload);
-      if (item) {
-      }
-      state.items = state.items.filter((item) => item.id !== action.payload);
-    },
-
-    incrementQuantity: (state, action: PayloadAction<number>) => {
-      const item = state.items.find((item) => item.id === action.payload);
-      if (item) {
-        if (item.quantity < 5) {
-          item.quantity += 1;
-        } else {
-          toast.warning(`${item.name} cannot be added more than 5 times.`);
-        }
-      }
-    },
-
-    decrementQuantity: (state, action: PayloadAction<number>) => {
-      const item = state.items.find((item) => item.id === action.payload);
-      if (item) {
-        item.quantity -= 1;
-
-        if (item.quantity <= 0) {
-          state.items = state.items.filter((item) => item.id !== action.payload);
-        }
-      }
-    },
-
-    // New reducer to set the cart items from the server
-    setCartItems: (state, action: PayloadAction<CartItem[]>) => {
-      state.items = action.payload;
-    },
-  },
-});
 
 const addItemToCartApi = async (item: CartItem, user_id: string) => {
   try {
@@ -87,11 +20,12 @@ const addItemToCartApi = async (item: CartItem, user_id: string) => {
       },
       body: JSON.stringify({
         name: item.name,
-        description: "N/A",
+        description: item.description,
         image: item.image,
         price: item.price,
         quantity: item.quantity,
         user_id: user_id,
+        item_id: item.id
       }),
     });
 
@@ -110,7 +44,7 @@ const addItemToCartApi = async (item: CartItem, user_id: string) => {
   }
 };
 
-const removeItemFromCartApi = async (itemId: number) => {
+const removeItemFromCartApi = async (itemId: string) => {
   try {
     const response = await fetch(`http://localhost:3001/api/cart/${itemId}`, {
       method: "DELETE",
@@ -129,7 +63,7 @@ const removeItemFromCartApi = async (itemId: number) => {
   }
 };
 
-const getItemsFromCart = async (dispatch: any) => {
+export const getItemsFromCart = async () => {
   try {
     const response = await fetch("http://localhost:3001/api/cart", {
       method: "GET", // GET request to fetch items from the cart
@@ -145,9 +79,9 @@ const getItemsFromCart = async (dispatch: any) => {
 
     // Parse the JSON response
     const data = await response.json();
-
+    return data;
     // Dispatch the fetched data to Redux store
-    dispatch(setCartItems(data));
+    //dispatch(setCartItems(data));
   } catch (error) {
     toast.error("Failed to get items from server cart");
     console.error("Error fetching items from server:", error);
@@ -155,23 +89,16 @@ const getItemsFromCart = async (dispatch: any) => {
 };
 
 const incrementQuantityApi = async (
-  itemId: number,
-  currentQuantity: number
+  itemId: string
 ) => {
-  if (currentQuantity === 5) {
-    toast.warning("Item quantity cannot exceed 5.");
-    return;
-  }
 
-  const newQuantity = currentQuantity < 5 ? currentQuantity + 1 : 5;
-  console.log("new quantity: ", newQuantity);
   try {
     const response = await fetch(`http://localhost:3001/api/cart/${itemId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ quantity: newQuantity }),
+      body: JSON.stringify({ action: "increment" }),
     });
 
     if (!response.ok) {
@@ -188,25 +115,28 @@ const incrementQuantityApi = async (
 };
 
 const decrementQuantityApi = async (
-  itemId: number,
-  currentQuantity: number
+  itemId: string,
+  quantity: number
 ) => {
-  const newQuantity = currentQuantity > 1 ? currentQuantity - 1 : 0;
 
+  if (quantity <= 1) {
+    removeItemFromCartApi(itemId);
+    return;
+  }
   try {
     const response = await fetch(`http://localhost:3001/api/cart/${itemId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ quantity: newQuantity }),
+      body: JSON.stringify({ action: "decrement" }),
     });
 
-    if (newQuantity <= 1) {
-      await removeItemFromCartApi(itemId);
-      toast.success("Item quantity removed successfully!");
-      return;
-    }
+    // if (newQuantity <= 1) {
+    //   await removeItemFromCartApi(itemId);
+    //   toast.success("Item quantity removed successfully!");
+    //   return;
+    // }
     if (!response.ok) {
       throw new Error("Failed to decrement item quantity");
     }
@@ -220,21 +150,10 @@ const decrementQuantityApi = async (
   }
 };
 
-export const {
-  addItem,
-  removeItem,
-  incrementQuantity,
-  decrementQuantity,
-  setCartItems,
-} = cartSlice.actions;
-
-export default cartSlice.reducer;
-
 // Export the API call function to use in your component
 export {
   addItemToCartApi,
   removeItemFromCartApi,
-  getItemsFromCart,
   incrementQuantityApi,
   decrementQuantityApi,
 };

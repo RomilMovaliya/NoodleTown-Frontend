@@ -2,15 +2,20 @@ import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { FormEvent, useEffect, useState } from "react";
 import { yellow } from "@mui/material/colors";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { setUsers, setCurrentUser, setLogin, setProfileInfo } from "../store/authSlice";
 import { toast } from "react-toastify";
-import { RootState } from "../store/store";
 import Cookies from "js-cookie";
+import { Cookie } from "@mui/icons-material";
+import axiosInstance from "../utils/axiosInstance";
+import { useDispatch } from "react-redux";
+import { setUsers } from "../store/authSlice";
+
+
+// const dispatch = useDispatch();
 
 const AuthPage = () => {
+
   const [email, setEmail] = useState("");
-  useSelector((state: RootState) => state.user);
+  // useSelector((state: RootState) => state.user);
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,14 +23,15 @@ const AuthPage = () => {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
+  //const dispatch = useDispatch();
+  //const userId = Cookies.get("userId");
+  //const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      navigate("/profile");
-    }
-  }, [isLoggedIn, navigate]);
+  // useEffect(() => {
+  //   if (userId) {
+  //     navigate("/profile");
+  //   }
+  // }, []);
 
   //
   const registerUser = async (userData: {
@@ -34,74 +40,61 @@ const AuthPage = () => {
     name: string;
   }) => {
     try {
-      const response = await fetch("http://localhost:3001/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-        credentials: "include", // Include cookies in response
-      });
+      const response = await axiosInstance.post("/register");
 
-      if (!response.ok) {
-        throw new Error("Registration failed!");
+      if (response.status === 200) {
+        toast.success("Registration successful!");
       }
 
-      const data = await response.json();
-      toast.success("Registration successful!");
-      setShowSuccessPopup(true);
-
-      Cookies.set("isLoggedIn", "true", { expires: 10 / (24 * 60) });
-      //window.localStorage.setItem('isLoggedIn', 'true');
-      setShowSuccessPopup(false);
-      navigate("/profile", { replace: true }); // Redirect to profile page after registration
     } catch (error) {
       toast.error("Registration failed. Please try again.");
     }
   };
 
   const loginUser = async (email: string, password: string) => {
-    try {
-      const response = await fetch("http://localhost:3001/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: "include", // Important: This sends cookies with the request
-      });
 
-      if (!response.ok) {
-        throw new Error("Login failed!");
-      }
-
-      const data = await response.json();
-      toast.success("Login successful!");
-      setShowAlert(true);
-      // If login is successful, set the token and userId in cookies
-      const { token, userId } = data;
-      const uname = data.name;
-      const uemail = data.email;
-
-      // Set the token in the cookies with an expiration time of 7 days
-      Cookies.set("authToken", token, { expires: 10 / (24 * 60) });
-      Cookies.set("userId", userId, { expires: 10 / (24 * 60) });
-      Cookies.set("isLoggedIn", "true", { expires: 10 / (24 * 60) });
-      Cookies.set("email", uemail, { expires: 10 / (24 * 60) });
-      Cookies.set("name", uname, { expires: 10 / (24 * 60) })
-
-      dispatch(setLogin(true));
-
-      console.log("Login response:", data);
+    const response = await axiosInstance.post("/login", {
+      email,
+      password
+    });
 
 
-
-      setShowAlert(false);
-      navigate("/profile");
-
-    } catch (error) {
-      toast.error("Invalid credentials or login failed.");
+    if (response.status != 200) {
+      toast.error("Invalid Credentials!")
+      throw new Error("Login failed!");
     }
+
+
+    toast.success("Login successful!");
+    setShowAlert(true);
+    // If login is successful, set the token and userId in cookies
+    const { token, userId } = response.data;
+
+    // dispatch(setUsers({
+    //   name: response.data.name,
+    //   email: response.data.email,
+    //   userId: response.data.userId
+    // }))
+
+
+
+    //Set the token in the cookies with an expiration time of 7 days
+    Cookies.set("authToken", token);
+    Cookies.set("userId", userId);
+    // Cookies.set("isLoggedIn", "true", { expires: 1 / 60 });
+    // Cookies.set("email", uemail, { expires: 1 / 60 });
+    // Cookies.set("name", uname, { expires: 1 / 60 })
+
+
+
+    console.log("Login response:", response.data);
+
+
+
+    setShowAlert(false);
+    navigate("/profile");
+
+
   };
 
   const onSubmitHandler = (e: FormEvent<HTMLFormElement>) => {
@@ -118,6 +111,16 @@ const AuthPage = () => {
         /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
       if (!emailValidationRegEx.test(email)) {
         toast.error("Invalid email format.");
+        return;
+      }
+
+      const passwordValidationRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+      if (!passwordValidationRegex.test(password)) {
+        toast.error(
+          "Password must be at least 8 characters, include uppercase, lowercase, number, and special character."
+        );
         return;
       }
 

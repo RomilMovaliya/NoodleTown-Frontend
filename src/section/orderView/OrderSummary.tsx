@@ -14,22 +14,25 @@ const OrderSummary = () => {
     console.log("chehcking orderid", id)
     const userId = Cookies.get("userId");
 
+
     const [authCheckTick, setAuthCheckTick] = useState(0);
-    const { data: myOrders } = useQuery({
+    const { data: myOrders, isLoading: isOrdersLoading } = useQuery({
         queryKey: ["myOrders", userId],
         queryFn: () => fetchOrderData(userId!),
         enabled: !!userId,
     });
 
-    const { data: savedAddresses = [] } = useQuery({
+    const { data: savedAddresses = [], isLoading: isAddressLoading } = useQuery({
         queryKey: ["address", userId],
         queryFn: () => getAddress(userId!),
         enabled: !!userId,
+
     });
 
-    const { data: getOrderItems } = useQuery({
+    const { data: getOrderItems, isLoading: isItemsLoading } = useQuery({
         queryKey: ["getOrderItem"],
         queryFn: getOrderItem,
+
     });
 
     const navigate = useNavigate();
@@ -42,25 +45,29 @@ const OrderSummary = () => {
         }
     }, [authCheckTick, navigate]);
 
-    // Every 1 seconds, increment tick to trigger re-render
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setAuthCheckTick((prev) => prev + 1);
-        }, 1000);
+    // Every 1 seconds,  re-render
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         setAuthCheckTick((prev) => prev + 1);
+    //     }, 1000);
 
-        return () => clearInterval(interval); // cleanup
-    }, []);
+    //     return () => clearInterval(interval); 
+    // }, []);
 
-    console.log(userId)
+    // console.log(userId)
     console.log("savedAddresses", savedAddresses);
+
     //console.log(savedAddresses[0].order)
     //console.log(savedAddresses.find((o) => o.order.order_id === id));
     const data = savedAddresses.find((o: { order: { order_id: string }; }) => o.order?.order_id === id);
-    console.log(data);
+    //console.log(data);
 
 
-    const matchedId = myOrders?.data?.find((o) => o.order_id === id);
-    console.log(matchedId);
+    const matchedId = myOrders?.data?.find((o: { order_id: string }) => o.order_id === id);
+    //console.log(matchedId);
+    // if (isOrdersLoading || isAddressLoading || isItemsLoading) {
+    //     return <p style={{ textAlign: 'center', marginTop: '100px' }}>Loading...</p>;
+    // }
 
 
     return (
@@ -104,43 +111,7 @@ const OrderSummary = () => {
             </Box >
 
 
-            <Box sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginInline: {
-                    xs: "20px",
-                    sm: "80px",
-                    md: "80px",
-                    lg: "80px",
-                },
 
-                marginTop: "20px",
-                backgroundColor: "#f4f6f9",
-                padding: "20px",
-                borderRadius: "10px",
-                boxShadow: "0 2px 4px #0000001a",
-
-            }}>
-
-                <p style={{
-                    fontSize: "20px",
-                    fontWeight: "500",
-                    fontFamily: "Poppins",
-                }}>Payment Status: </p>
-
-                <p style={{
-                    backgroundColor: "#E6F4EA",
-                    color: "#4CAF50",
-                    padding: "5px 15px",
-                    borderRadius: "20px",
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    fontFamily: "Poppins",
-                    textTransform: "uppercase",
-                }}>SUCCESS</p>
-
-            </Box >
 
 
 

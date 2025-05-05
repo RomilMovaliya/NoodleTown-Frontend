@@ -1,15 +1,13 @@
 import { Box, Button, ListItemText, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import {
-  addItem,
   addItemToCartApi,
-  decrementQuantity,
   decrementQuantityApi,
-  incrementQuantity,
+  getItemsFromCart,
   incrementQuantityApi,
 } from "../../store/cartSlice";
-import { RootState } from "../../store/store";
+//import { RootState } from "../../store/store";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
@@ -18,8 +16,9 @@ import { getOrderOnlineData } from "../../utils/orderonline";
 import { fetchCartItems } from "../../utils/cartItem";
 
 const OrderOnline = () => {
-  const dispatch = useDispatch();
+
   const { id } = useParams<{ id: string }>();
+  const userId = Cookies.get("userId")
 
   interface AllItems {
     id: number;
@@ -41,8 +40,6 @@ const OrderOnline = () => {
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(""); // Default category
-
-  // const [items, setItems] = useState<AllItems[]>([]);
 
   const handleListItemClick = (index: number, category: string) => {
     setSelectedIndex(index);
@@ -122,8 +119,8 @@ const OrderOnline = () => {
     ],
   };
 
-  const itemsInCart = useSelector((state: RootState) => state.cart.items);
-  const { isLoggedIn } = useSelector((state: RootState) => state.user);
+  //const itemsInCart = useSelector((state: RootState) => state.cart.items);
+  //const { isLoggedIn } = useSelector((state: RootState) => state.user);
   //const userId = useSelector((state: RootState) => state.user.userId); // Get userId from Redux store
 
   const handleAddToCart = (item: {
@@ -134,27 +131,33 @@ const OrderOnline = () => {
     image: string;
     quantity: number;
     user_id: string;
+    item_id: number;
+
   }) => {
-    if (!isLoggedIn) {
+    if (!userId) {
       toast.error("Hey there! Please login to proceed.");
       return;
     }
 
+    const itemsInCart = items;
+    console.log("items In Cart", itemsInCart); // ← This will show actual cart items
+
+
     const existingItem = itemsInCart.find(
-      (cartItem) => cartItem.name === item.name
+      (cartItem: { item_id: number }) => cartItem.item_id === item.item_id
     );
 
     if (existingItem && existingItem.quantity >= 5) {
       toast.error("Maximum quantity of 5 reached for this item!");
     } else {
-      dispatch(addItem(item)); // Add item to cart
+      //dispatch(addItem(item)); // Add item to cart
 
       const userId = Cookies.get("userId");
       console.log("userId", userId);
       console.log("item", item);
-      addItemToCartApi(item, userId)
+      addItemToCartApi(item, userId!)
         .then(() => {
-          dispatch({ type: "ADD_ITEM_TO_CART_SUCCESS", payload: item });
+          //dispatch({ type: "ADD_ITEM_TO_CART_SUCCESS", payload: item });
           refetch();
         })
         .catch((error) => {
@@ -163,10 +166,8 @@ const OrderOnline = () => {
     }
   };
 
-  const userId = Cookies.get("userId");
   const {
     data: items = [],
-    isLoading,
     refetch,
   } = useQuery({
     queryKey: ["cartItems", userId],
@@ -176,9 +177,8 @@ const OrderOnline = () => {
 
   console.log("fetch cart item", items);
 
-  const handleIncrement = (id: number, quantity: number) => {
-    dispatch(incrementQuantity(id)); // Increment quantity of item in cart
-    incrementQuantityApi(id, quantity)
+  const handleIncrement = (id: string) => {
+    incrementQuantityApi(id)
       .then(() => refetch())
       .catch((error) => {
         console.error("Failed to update item in cart:", error);
@@ -186,8 +186,8 @@ const OrderOnline = () => {
       });
   };
 
-  const handleDecrement = (id: number, quantity: number) => {
-    dispatch(decrementQuantity(id));
+  const handleDecrement = (id: string, quantity: number) => {
+
     decrementQuantityApi(id, quantity)
       .then(() => refetch())
       .catch((error) => {
@@ -218,37 +218,6 @@ const OrderOnline = () => {
     .flat()
     .filter((item) => item.category === selectedCategory);
 
-
-  //  --------------------------------my pure logic for testing cart button  -------------------------------------
-
-  // console.log("filtered item", filteredItems);//(5) [{…}, {…}, {…}, {…}, {…}]
-  // console.log(items.map((itemm) => itemm.name)); //['Treat Combo']
-
-  const cartItems = items.map((itemm) => (itemm.name));
-  // console.log("cart items", cartItems)
-  const matchArray = filteredItems.map((item) => cartItems.includes(item.name));
-  // console.log(matchArray)
-  //--------------------------------------------------------------------------------------------------------------------
-
-
-  // --------------------------------------- my pure logic for testing quantity -------------------------------------------
-
-  // console.log("my itemsssss data:", items);
-  // console.log("my cartItemssss:", cartItems);
-
-  const fetchQuantityfunc = (name: string) => {
-    const item = items.find((item) => item.name === name)
-    return item ? item.quantity : 0;
-  }
-
-  //   const fetchIdfunc = (name: string) => {
-  //     const item = items.find((item) => item.name === name)
-  //     console.log("fetchIdfunc", item);
-  //     return item ? item.cartitem_id
-  //  : 0;
-  //   }
-
-  // --------------------------------------------------------------------------------------------------------------
   return (
     <>
       <Box
@@ -346,16 +315,19 @@ const OrderOnline = () => {
               marginInline="70px"
               sx={{ "@media (max-width:1090px)": { marginInline: "10px" } }}
             >
-              {filteredItems.map((item, index) => {
-                const isItemInCart = matchArray[index];
-                const ItemQuantity = fetchQuantityfunc(item.name);
-                // const ItemId = fetchIdfunc(item.name);
-                // console.log("ItemId is: ", ItemId);
-                const itemInCart = itemsInCart.find(
-                  (cartItem) => cartItem.name === item.name
-                ); // Get the item from cart
+              {filteredItems.map((item) => {
+                console.log("filteredItems", filteredItems)
+                console.log("items", items);
+                const cartItem = items.find((cart: any) => cart.name === item.name);
+                console.log("cartItem jojo", cartItem);
+                console.log("cartItem.name", cartItem?.name);
+                console.log(item.name);
+                const isItemInCart = !!cartItem;
 
-
+                const ItemQuantity = {
+                  quantity: cartItem?.quantity ?? 0,
+                  cartitem_id: cartItem?.cartitem_id ?? '',
+                };
 
                 return (
                   <Box
@@ -455,8 +427,8 @@ const OrderOnline = () => {
                               color: "white",
                               width: "100%",
                             }}
-                            onClick={() => handleAddToCart(item)} // Add item to cart
-                            disabled={itemInCart?.quantity === 5} // Disable button if item quantity is 5
+                            onClick={() => handleAddToCart({ ...item, user_id: Cookies.get("userId") || "" })} // Add item to cart
+                            disabled={ItemQuantity.quantity === 5} // Disable button if item quantity is 5
                           >
                             Add To Cart
                           </Button>
@@ -468,14 +440,14 @@ const OrderOnline = () => {
                                 backgroundColor: "#F3F3F3",
                                 color: "black",
                               }}
-                              onClick={() =>
-                                handleDecrement(item.id, itemInCart ? itemInCart.quantity : 0)
+                              onClick={
+                                () => handleDecrement(ItemQuantity.cartitem_id, ItemQuantity.quantity)
                               }
                             >
                               -
                             </Button>
                             <Typography sx={{ alignContent: "center" }}>
-                              {ItemQuantity}
+                              {ItemQuantity.quantity}
                             </Typography>
                             <Button
                               sx={{
@@ -483,9 +455,9 @@ const OrderOnline = () => {
                                 color: "white",
                               }}
                               onClick={() =>
-                                handleIncrement(item.id, ItemQuantity)
+                                handleIncrement(ItemQuantity.cartitem_id)
                               }
-                              disabled={ItemQuantity === 5}
+                              disabled={ItemQuantity.quantity === 5}
                             >
                               +
                             </Button>

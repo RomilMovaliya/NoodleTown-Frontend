@@ -1,4 +1,4 @@
-import { Box, Stack } from '@mui/material'
+import { Box, Skeleton, Stack } from '@mui/material'
 import { useEffect, useState } from 'react'
 import {
     headerItem1, headerItem2, headerItem3, mcdHeader1, mcdHeader2, mcdHeader3,
@@ -6,9 +6,26 @@ import {
 } from '../../assets/index';
 
 import { useParams } from 'react-router';
+import { getData } from '../../utils/detailview';
+import { useQuery } from '@tanstack/react-query';
+
 
 
 const Header = () => {
+    const { id } = useParams<{ id: string }>();
+
+    const { data: brandData, isLoading: isDataLoading } = useQuery({
+        queryKey: ["getdata"],
+        queryFn: getData
+    });
+
+    console.log("brandData", brandData);
+
+    const barndId = parseInt(id || '0');
+    const brand = brandData?.find((item: { id: number; }) => barndId === item.id);
+    console.log("BRAND: ", brand);
+
+
 
     interface HeadersImg {
         id: number,
@@ -17,72 +34,61 @@ const Header = () => {
         image3: string
     }
 
-    const { id } = useParams<{ id: string }>();
+
 
     const [selectedBrand, setSelectedBrand] = useState<HeadersImg | null>(null);
 
 
-    const headerImg: HeadersImg[] = [
-        {
-            id: 1,
-            image1: headerItem1,
-            image2: headerItem2,
-            image3: headerItem3
-        },
+    const headerImg: HeadersImg[] = brandData;
 
-        {
-            id: 2,
-            image1: mcdHeader1,
-            image2: mcdHeader2,
-            image3: mcdHeader3
-
-        },
-
-        {
-            id: 3,
-            image1: starbuckImg3,
-            image2: starbuckImg2,
-            image3: starbuckImg1
-
-        },
-
-        {
-            id: 4,
-            image1: mcdHeader1,
-            image2: burgurKing2,
-            image3: burgurKing3
-
-        },
-
-
-        {
-            id: 5,
-            image1: kfc1,
-            image2: kfc2,
-            image3: kfc3
-
-        },
-
-        {
-            id: 6,
-            image1: headerItem1,
-            image2: headerItem2,
-            image3: headerItem3
-        }
-    ];
-
-
-    useEffect(() => {
-        const barndId = parseInt(id || '0');
-        const brand = headerImg.find((item) => barndId === item.id);
-        setSelectedBrand(brand || null);
-    }, [id]);
+    // useEffect(() => {
+    //     const barndId = parseInt(id || '0');
+    //     console.log("brandId", barndId);
+    //     const brand = brandData?.find((item) => barndId === item.id);
+    //     console.log("brand", brand)
+    //     setSelectedBrand(brand || null);
+    // }, [id]);
 
 
     return (
         <>
+            {isDataLoading ? (<>    <Stack
+                sx={{
+                    flexDirection: { lg: 'row', md: 'row', sm: 'row', xs: 'column' },
+                    gap: '8px',
+                    marginTop: { xs: '70px', lg: '70px', md: '70px', sm: '70px' },
+                    '@media (max-width:600px)': {
+                        marginTop: '100px',
+                        gap: '0px',
+                    },
+                }}
+            >
+                {/* Left Side Skeleton (Image 1) */}
+                <Box sx={{ width: { xs: '100%', md: '30%', lg: '50%' } }}>
+                    <Skeleton variant="rounded" width="100%" height={568} animation="wave" />
+                </Box>
 
-            <Stack sx={{
+                {/* Right Side Skeleton (Image 2 and 3) */}
+                <Box width="50%">
+                    <Stack
+                        sx={{
+                            flexDirection: {
+                                lg: 'column',
+                                md: 'column',
+                                sm: 'column',
+                                xs: 'row',
+                            },
+                            gap: '8px',
+                            '@media (max-width:600px)': {
+                                gap: '0px',
+                            },
+                        }}
+                    >
+                        <Skeleton variant="rounded" height={280} width="100%" animation="wave" />
+                        <Skeleton variant="rounded" height={280} width="100%" animation="wave" />
+                    </Stack>
+                </Box>
+            </Stack></>) : (<><Stack sx={{
                 flexDirection: {
                     lg: 'row',
                     md: 'row',
@@ -118,7 +124,7 @@ const Header = () => {
                             md: '568px',
                             sm: '568px'
                         }
-                    }} component='img' src={selectedBrand?.image1} width='100%' />
+                    }} component='img' src={brand?.headerimg.img1} width='100%' />
                 </Box>
                 <Box width='50%'>
                     <Stack sx={{
@@ -135,13 +141,13 @@ const Header = () => {
                         },
 
                     }}>
-                        <Box component='img' src={selectedBrand?.image2} height='280px' width='100%' sx={{
+                        <Box component='img' src={brand?.headerimg.img2} height='280px' width='100%' sx={{
                             '@media (max-width:600px)': {
                                 gap: '5px',
                                 height: '250px'
                             }
                         }} />
-                        <Box component='img' src={selectedBrand?.image3} height='280px' width='100%' sx={{
+                        <Box component='img' src={brand?.headerimg.img3} height='280px' width='100%' sx={{
                             '@media (max-width:600px)': {
                                 gap: '5px',
                                 height: '250px'
@@ -150,7 +156,9 @@ const Header = () => {
                     </Stack>
 
                 </Box>
-            </Stack>
+            </Stack></>)}
+
+
 
         </>
     )

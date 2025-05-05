@@ -3,10 +3,10 @@ import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import { useDispatch } from "react-redux";
-import { addItemToCartApi, incrementQuantity, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
+import { addItemToCartApi, decrementQuantityApi, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
 import { useQuery } from "@tanstack/react-query";
 import { getFoodItemData } from "../../utils/foodItem";
+import { fetchCartItems } from "../../utils/cartItem";
 
 interface FoodItem {
   id: number;
@@ -23,57 +23,21 @@ const FoodItem = () => {
   const [selectedFoodItem, setSelectedFoodItem] = useState<FoodItem | null>(
     null
   );
-  const [isCartItem, setIsCartItem] = useState<boolean>(false);
-  const [cart, setCart] = useState<FoodItem[]>([]);
-  const dispatch = useDispatch();
-  const userId = Cookies.get("userId");
+
+  const userId: string = Cookies.get("userId") || "";
   const isLoggedIn = !!userId;
 
-  const fetchCartItems = async () => {
-    const response = await fetch(`http://localhost:3001/api/cart`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch items from server cart");
-    }
-    const data = await response.json();
+  const {
+    data: items = [],
+    refetch,
+  } = useQuery({
+    queryKey: ["cartItems", userId],
+    queryFn: fetchCartItems,
+    enabled: !!userId,
+  });
 
-    for (const item of data) {
-      console.log(
-        "item's user id is same as userid from cookie",
-        item.user_id === userId
-      );
+  console.log("cart items", items);
 
-      if (item.user_id === userId) {
-        if (item.name === selectedFoodItem?.name) {
-          setIsCartItem(true);
-          return;
-        }
-      }
-    }
-
-    console.log(cart);
-    return data;
-  };
-
-  console.log("User ID from cookies:", userId);
-
-  useEffect(() => {
-    if (userId && selectedFoodItem) {
-      fetchCartItems()
-        .then((data) => {
-          setCart(data);
-          const existingItem = data.find(
-            (item: FoodItem) =>
-              item.user_id === userId && item.id === selectedFoodItem.id
-          );
-          if (existingItem) {
-            setIsCartItem(true);
-          }
-        })
-        .catch((error) => {
-          console.error("Failed to fetch cart items:", error);
-        });
-    }
-  }, [userId, selectedFoodItem]); // Add selectedFoodItem as a dependency
 
   const { data: FoodItem } = useQuery({
     queryKey: ["foodItem"],
@@ -81,9 +45,12 @@ const FoodItem = () => {
   })
   const foodItems: FoodItem[] = FoodItem?.data || [];
 
+  console.log("FoodItem data", foodItems);
+  console.log("User ID from cookies:", userId);
+  const cartItem = items.find((item: { item_id: number }) => item.item_id === selectedFoodItem?.id);
 
-
-
+  const isItemInCart = !!cartItem;
+  console.log("selectedFoodItem", selectedFoodItem);
 
   useEffect(() => {
     const foodId = parseInt(id || "0");
@@ -91,40 +58,27 @@ const FoodItem = () => {
     setSelectedFoodItem(food || null);
   }, [id, foodItems]);
 
-  const handleAddToCart = () => {
+
+  const handleAddToCart = (selectedFoodItem: FoodItem, userId: string) => {
     if (!isLoggedIn) {
       toast.error("Please login to add to cart.");
       return;
     }
-    if (selectedFoodItem) {
-      // Dispatching API call to save item to the cart.
-      addItemToCartApi(selectedFoodItem, userId)
-        .then(() => {
-          dispatch({
-            type: "ADD_ITEM_TO_CART_SUCCESS",
-            payload: selectedFoodItem,
-          });
-          toast.success(`${selectedFoodItem.name} added to cart.`);
-
-          setIsCartItem(true);
-        })
-        .catch((error) => {
-          toast.error("Failed to add item to cart.");
-          console.error("Failed to add item to cart:", error);
-        });
-
-      // Updating the local cart state
-      setCart([...cart, selectedFoodItem]);
-    }
+    addItemToCartApi(selectedFoodItem, userId)
+      .then(() => {
+        refetch();
+      })
+      .catch((error) => {
+        toast.error("Failed to add item to cart.");
+        console.error("Failed to add item to cart:", error);
+      });
   };
 
 
-  const handleIncrement = (id: number, quantity: number) => {
-    console.log("Incrementing quantity for item with ID:", id);
-    dispatch(incrementQuantity(id));
-    incrementQuantityApi(id, quantity)
+  const handleIncrement = (id: string) => {
+    incrementQuantityApi(id)
       .then(() => {
-        dispatch({ type: "update item in cart", payload: id });
+        refetch();
       })
       .catch((error) => {
         console.error("Failed to update item in cart:", error);
@@ -132,20 +86,13 @@ const FoodItem = () => {
       });
   };
 
-  const handleDecrement = () => {
-    if (!selectedFoodItem) return;
-    const existingItem = cart.find((item) => item.id === selectedFoodItem.id);
-    if (!existingItem) return;
-    if (existingItem.quantity === 1) {
-      setCart(cart.filter((item) => item.id !== selectedFoodItem.id));
-    } else {
-      const updatedCart = cart.map((item) =>
-        item.id === selectedFoodItem.id
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      );
-      setCart(updatedCart);
-    }
+  const handleDecrement = (id: string, quantity: number) => {
+    decrementQuantityApi(id, quantity)
+      .then(() => refetch())
+      .catch((error) => {
+        console.error("Failed to update item in cart:", error);
+        toast.error("Failed to update item in your cart");
+      });
   };
 
   return (
@@ -170,24 +117,24 @@ const FoodItem = () => {
 
         {!selectedFoodItem ? (
           <Skeleton variant="rounded" width={200} height={40} animation="wave" />
-        ) : !isCartItem ? (
-          <Button variant="contained" color="warning" onClick={handleAddToCart}>
+        ) : !isItemInCart ? (
+          <Button variant="contained" color="warning" onClick={() => { handleAddToCart(selectedFoodItem, userId) }}>
             Add To Cart
           </Button>
         ) : (
           <Stack direction="row" spacing={1} alignItems="center">
-            <Button variant="outlined" onClick={handleDecrement}>
+            <Button variant="outlined" onClick={() => handleDecrement(cartItem.cartitem_id, cartItem.quantity)}>
               -
             </Button>
-            <Typography>{selectedFoodItem?.quantity}</Typography>
+            <Typography>{cartItem?.quantity}</Typography>
             <Button
               variant="outlined"
               onClick={() =>
                 handleIncrement(
-                  selectedFoodItem?.id,
-                  selectedFoodItem?.quantity + 1
+                  cartItem?.cartitem_id
                 )
               }
+              disabled={cartItem?.quantity === 5}
             >
               +
             </Button>

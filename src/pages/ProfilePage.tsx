@@ -5,14 +5,15 @@ import { useEffect, useState } from "react";
 import { yellow } from "@mui/material/colors";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout, setUsers } from "../store/authSlice";
-import { RootState } from "../main";
+//import { logout, setUsers } from "../store/authSlice";
+//import { RootState } from "../main";
 import Cookies from "js-cookie";
 import { Link } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { passwordReset } from "../utils/auth";
 import { Password } from "@mui/icons-material";
 import { toast } from "react-toastify";
+import axiosInstance from "../utils/axiosInstance";
 
 
 const ProfilePage = () => {
@@ -24,17 +25,36 @@ const ProfilePage = () => {
   const [updatecontact, setUpdatecontact] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const userId = Cookies.get("userId")
-
-  const name = Cookies.get("name");
-  const email = Cookies.get("email");
 
 
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axiosInstance.get("/profile");
+      console.log("response.data.user", response.data.user);
 
+      return response.data.user;
+
+      // if (!response.ok) throw new Error("Unauthorized");
+
+      // const data = await response.json();
+      // return data.user; // contains userId, name, email (from JWT)
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const { data: user, isLoading, isError } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: fetchCurrentUser,
+  });
+
+  console.log("user", user);
+
+  //const userId = user.userId;
+  //console.log("userId", userId);
 
   const resetPasswordMutation = useMutation({
-    mutationFn: () => passwordReset(email || "", newPassword),
+    mutationFn: () => passwordReset(user?.email || "", newPassword),
   });
 
 
@@ -42,12 +62,11 @@ const ProfilePage = () => {
 
   // Check auth token and redirect if missing
   useEffect(() => {
-    const token = Cookies.get("authToken");
-    if (!token) {
-      dispatch(logout());
+    const userId = Cookies.get("userId");
+    if (!userId) {
       navigate("/auth", { replace: true });
     }
-  }, [authCheckTick, dispatch, navigate]);
+  }, [authCheckTick, navigate]);
 
   // Every 5 seconds, increment tick to trigger re-render
   useEffect(() => {
@@ -60,26 +79,22 @@ const ProfilePage = () => {
 
 
   const handleLogout = () => {
-    dispatch(logout()); // Dispatch to log out the user
-    Cookies.remove("isLoggedIn"); // Remove isLoggedIn from cookies
+
+    const response = axiosInstance.get("/logout");
+    console.log("response of logout", response);
+    //dispatch(logout()); // Dispatch to log out the user
+    // Cookies.remove("isLoggedIn"); // Remove isLoggedIn from cookies
     Cookies.remove("userId"); // Remove userId from cookies
     Cookies.remove("authToken"); // Remove authToken from cookies
-    Cookies.remove("name");
-    Cookies.remove("email");
-    Cookies.remove("AccessToken");
+    // Cookies.remove("name");
+    // Cookies.remove("email");
+    // Cookies.remove("AccessToken");
 
     navigate("/auth/");
   };
 
   const handlePasswordReset = async () => {
     setErrorMessage(""); // clear previous error
-
-    // if (currentUser?.password !== currentPassword) {
-    //   setErrorMessage("Current password is incorrect.");
-    //   return;
-    // }
-
-
 
     if (newPassword !== confirmNewPassword) {
       setErrorMessage("New passwords do not match.");
@@ -101,6 +116,9 @@ const ProfilePage = () => {
       console.error("Password reset error:", err);
       setErrorMessage("Something went wrong. Please try again.");
     }
+
+
+
   };
 
 
@@ -141,14 +159,14 @@ const ProfilePage = () => {
             justifyContent: "center",
           }}
         >
-          <Typography fontSize={70}>D</Typography>
+          <Typography fontSize={70}>{user?.name?.charAt(0).toUpperCase()}</Typography>
         </Box>
 
         <Typography fontSize={20} fontWeight={500}>
-          {name}
+          {user?.name}
         </Typography>
         <Typography fontSize={16} color="gray">
-          {email}
+          {user?.email}
         </Typography>
 
 
@@ -164,19 +182,7 @@ const ProfilePage = () => {
         >
           Logout
         </Button>
-        <Link to={`/order`} style={{ width: "100%" }}>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: yellow[700],
-              width: "100%",
-              marginTop: 1,
-              height: "40px",
-            }}
-          >
-            View Orders
-          </Button>
-        </Link>
+
       </Box>
 
       {/* Update Password Section */}
@@ -247,7 +253,19 @@ const ProfilePage = () => {
           Update Password
         </Button>
 
-
+        <Link to={`/order`} style={{ width: "100%" }}>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: yellow[700],
+              width: "100%",
+              marginTop: 3,
+              height: "40px",
+            }}
+          >
+            View Orders
+          </Button>
+        </Link>
       </Box>
     </Box>
 
