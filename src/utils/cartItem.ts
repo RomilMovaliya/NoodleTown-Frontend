@@ -1,13 +1,11 @@
+import axiosInstance from "./axiosInstance";
 
 // Function to fetch cart items from the server
 export const fetchCartItems = async () => {
-    const res = await fetch("http://localhost:3001/api/cart/");
-    if (!res.ok) {
-        throw new Error("Failed to fetch items from server cart");
-    }
-    const data = await res.json();
-    console.log("Fetched cart items for cartitem page:", data);
-    return data;
+    const res = await axiosInstance.get("http://localhost:3001/api/cart/");
+
+    console.log("Fetched cart items for cartitem page:", res.data);
+    return res.data;
 };
 
 export const clearCartItem = async (userId: string) => {

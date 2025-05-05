@@ -22,7 +22,7 @@ export const PaymentSuccess = () => {
         const sessionId = searchParams.get("session_id");
 
 
-        const deliveryForm = JSON.parse(localStorage.getItem("deliveryForm") || "{}");
+
 
         const verifyPayment = async () => {
             if (hasVerified.current) return;
@@ -33,22 +33,33 @@ export const PaymentSuccess = () => {
             console.log("Verifying payment with session:", sessionId);
             const data = await res.json();
 
+
             console.log(data.status)
 
             if (data.status === "success") {
+                console.log("user id in payment success: ", userId);
                 const orderId = await generateOrder(userId);
-
+                console.log("order in payment success after generateOrder: ", orderId);
                 await addOrderItem(userId, orderId);
+                console.log("order id in payment success after adding order item: ", orderId);
+                const deliveryForm = JSON.parse(localStorage.getItem("deliveryForm") || "{}");
+                console.log("deliveryForm after declare", deliveryForm);
 
+                const fullDeliveryData = {
+                    ...deliveryForm,
+                    user_id: userId,
+                    order_id: orderId,
+                };
+                console.log("fullDeliveryData", fullDeliveryData)
                 const response = await fetch("http://localhost:3001/api/delivery/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        ...deliveryForm, user_id: userId
-                    }),
+                    body: JSON.stringify(fullDeliveryData),
                 });
+                console.log("user id after response: ", response);
+                console.log("deliveryForm after response", deliveryForm);
 
                 const data = await response.json();
                 console.log("Submitted data:", data, "in page: ", page);
@@ -73,9 +84,8 @@ export const PaymentSuccess = () => {
             height: "auto",
             marginTop: "200px"
         }}>
-            <Typography>{message}</Typography>;
+            <Typography>{message}</Typography>
         </Box>
-
 
     </>);
 

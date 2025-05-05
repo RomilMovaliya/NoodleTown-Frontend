@@ -7,7 +7,6 @@ import {
   getItemsFromCart,
   incrementQuantityApi,
 } from "../../store/cartSlice";
-//import { RootState } from "../../store/store";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
@@ -119,10 +118,6 @@ const OrderOnline = () => {
     ],
   };
 
-  //const itemsInCart = useSelector((state: RootState) => state.cart.items);
-  //const { isLoggedIn } = useSelector((state: RootState) => state.user);
-  //const userId = useSelector((state: RootState) => state.user.userId); // Get userId from Redux store
-
   const handleAddToCart = (item: {
     id: number;
     name: string;
@@ -150,14 +145,11 @@ const OrderOnline = () => {
     if (existingItem && existingItem.quantity >= 5) {
       toast.error("Maximum quantity of 5 reached for this item!");
     } else {
-      //dispatch(addItem(item)); // Add item to cart
-
       const userId = Cookies.get("userId");
       console.log("userId", userId);
       console.log("item", item);
       addItemToCartApi(item, userId!)
         .then(() => {
-          //dispatch({ type: "ADD_ITEM_TO_CART_SUCCESS", payload: item });
           refetch();
         })
         .catch((error) => {
@@ -175,8 +167,8 @@ const OrderOnline = () => {
     enabled: !!userId,
   });
 
-  console.log("fetch cart item", items);
-
+  console.log("fetch cart item", items.data);
+  console.log("user id", items)
   const handleIncrement = (id: string) => {
     incrementQuantityApi(id)
       .then(() => refetch())
