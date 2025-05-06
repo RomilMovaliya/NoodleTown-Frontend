@@ -4,20 +4,42 @@ import { useEffect, useState } from "react";
 import {
   addItemToCartApi,
   decrementQuantityApi,
-  getItemsFromCart,
   incrementQuantityApi,
 } from "../../store/cartSlice";
 import { useParams } from "react-router";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { getOrderOnlineData } from "../../utils/orderonline";
 import { fetchCartItems } from "../../utils/cartItem";
+import { CartItemPayload } from "../../types/type";
 
 const OrderOnline = () => {
 
+  const mapToCartPayload = (item: AllItems, user_id: string): CartItemPayload => ({
+    id: 0,
+    item_id: item.id,
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    image: item.image,
+    quantity: 1,
+    user_id,
+  });
+
   const { id } = useParams<{ id: string }>();
-  const userId = Cookies.get("userId")
+
+
+  const {
+    data: items = [],
+    refetch,
+  } = useQuery({
+    queryKey: ["cartItems"],
+    queryFn: fetchCartItems,
+  });
+
+  const cartItems = items.cartItems || [];
+
+  const userId = items.user?.userId;
 
   interface AllItems {
     id: number;
@@ -134,10 +156,7 @@ const OrderOnline = () => {
       return;
     }
 
-    const itemsInCart = items;
-    console.log("items In Cart", itemsInCart); // ← This will show actual cart items
-
-
+    const itemsInCart = cartItems || [];
     const existingItem = itemsInCart.find(
       (cartItem: { item_id: number }) => cartItem.item_id === item.item_id
     );
@@ -145,9 +164,6 @@ const OrderOnline = () => {
     if (existingItem && existingItem.quantity >= 5) {
       toast.error("Maximum quantity of 5 reached for this item!");
     } else {
-      const userId = Cookies.get("userId");
-      console.log("userId", userId);
-      console.log("item", item);
       addItemToCartApi(item, userId!)
         .then(() => {
           refetch();
@@ -158,17 +174,6 @@ const OrderOnline = () => {
     }
   };
 
-  const {
-    data: items = [],
-    refetch,
-  } = useQuery({
-    queryKey: ["cartItems", userId],
-    queryFn: fetchCartItems,
-    enabled: !!userId,
-  });
-
-  console.log("fetch cart item", items.data);
-  console.log("user id", items)
   const handleIncrement = (id: string) => {
     incrementQuantityApi(id)
       .then(() => refetch())
@@ -309,8 +314,11 @@ const OrderOnline = () => {
             >
               {filteredItems.map((item) => {
                 console.log("filteredItems", filteredItems)
-                console.log("items", items);
-                const cartItem = items.find((cart: any) => cart.name === item.name);
+                console.log("items", item.id);
+
+                //const cartItem = items.find((cart: any) => cart.name === item.name);
+                const cartItem = cartItems.find((cart: any) => cart.name === item.name);
+
                 console.log("cartItem jojo", cartItem);
                 console.log("cartItem.name", cartItem?.name);
                 console.log(item.name);
@@ -359,7 +367,7 @@ const OrderOnline = () => {
                     <Box
                       component="img"
                       padding={2}
-                      src={item.image} // Loop through the images
+                      src={item.image}
                       sx={{
                         // border: '2px solid black',
                         borderRadius: "10px",
@@ -409,7 +417,6 @@ const OrderOnline = () => {
                       </Typography>
 
                       <Box width="100%">
-                        {/* Conditional rendering for Add to Cart or quantity adjustment */}
 
                         {!isItemInCart ? (
                           <Button
@@ -419,7 +426,7 @@ const OrderOnline = () => {
                               color: "white",
                               width: "100%",
                             }}
-                            onClick={() => handleAddToCart({ ...item, user_id: Cookies.get("userId") || "" })} // Add item to cart
+                            onClick={() => handleAddToCart(mapToCartPayload(item, userId))}
                             disabled={ItemQuantity.quantity === 5} // Disable button if item quantity is 5
                           >
                             Add To Cart

@@ -1,13 +1,13 @@
 import { Box, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { addOrderItem, generateOrder } from "../../utils/cartItem";
-import Cookies from "js-cookie";
+import { addOrderItem, fetchCartItems, generateOrder } from "../../utils/cartItem";
+import { useQuery } from "@tanstack/react-query";
 export const PaymentSuccess = () => {
     const navigate = useNavigate();
     const hasVerified = useRef(false);
-    const page = "paymentSuccess";
-    const userId = Cookies.get("userId");
+    //const userId = Cookies.get("userId");
+
     useEffect(() => {
         const timer = setTimeout(() => {
             navigate("/order"); // Adjust path if your cart route is different
@@ -18,11 +18,26 @@ export const PaymentSuccess = () => {
     const [searchParams] = useSearchParams();
     const [message, setMessage] = useState("Verifying payment...");
 
+    //----------------------------------------------------- issue area ------------------------------------------------------------
+    //issue description:- here if i comment out userId, then it will not work but otherwise it will show me log that is given below.
+    const {
+        data: items = [],
+        isLoading
+    } = useQuery({
+        queryKey: ["cartItems"],
+        queryFn: fetchCartItems,
+    });
+
+    const userId = items.user?.userId;
+    console.log("items.user?.userId inside payment success", items.user?.userId);
+    //------------------------------------------------------------------------------------------------------------------------------
+
     useEffect(() => {
+
+        if (isLoading || !userId) return; // Don't proceed until data is ready
+
+
         const sessionId = searchParams.get("session_id");
-
-
-
 
         const verifyPayment = async () => {
             if (hasVerified.current) return;
@@ -33,18 +48,12 @@ export const PaymentSuccess = () => {
             console.log("Verifying payment with session:", sessionId);
             const data = await res.json();
 
-
-            console.log(data.status)
-
             if (data.status === "success") {
-                console.log("user id in payment success: ", userId);
-                const orderId = await generateOrder(userId);
-                console.log("order in payment success after generateOrder: ", orderId);
-                await addOrderItem(userId, orderId);
-                console.log("order id in payment success after adding order item: ", orderId);
-                const deliveryForm = JSON.parse(localStorage.getItem("deliveryForm") || "{}");
-                console.log("deliveryForm after declare", deliveryForm);
 
+                const orderId = await generateOrder(userId);
+                await addOrderItem(userId, orderId);
+
+                const deliveryForm = JSON.parse(localStorage.getItem("deliveryForm") || "{}");
                 const fullDeliveryData = {
                     ...deliveryForm,
                     user_id: userId,
@@ -58,21 +67,17 @@ export const PaymentSuccess = () => {
                     },
                     body: JSON.stringify(fullDeliveryData),
                 });
-                console.log("user id after response: ", response);
-                console.log("deliveryForm after response", deliveryForm);
-
                 const data = await response.json();
-                console.log("Submitted data:", data, "in page: ", page);
-
-
+                console.log("Submitted data:", data);
             }
+
             setMessage(data.status === "success" ? "yes" : "fail");
             localStorage.removeItem("deliveryForm");
             return;
         };
 
         if (sessionId) verifyPayment();
-    }, []);
+    }, [isLoading, userId]);
 
     return (<>
 

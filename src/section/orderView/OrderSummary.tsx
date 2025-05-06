@@ -5,45 +5,73 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchOrderData, getAddress } from "../../utils/address";
 import { useNavigate, useParams } from "react-router";
 import { getOrderItem } from "../../utils/ordersummary";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { fetchCartItems } from "../../utils/cartItem";
 
 
 const OrderSummary = () => {
 
     const { id } = useParams();
+    const navigate = useNavigate();
     console.log("chehcking orderid", id)
-    const userId = Cookies.get("userId");
 
 
-    const [authCheckTick, setAuthCheckTick] = useState(0);
-    const { data: myOrders, isLoading: isOrdersLoading } = useQuery({
-        queryKey: ["myOrders", userId],
+    const {
+        data: items = [],
+    } = useQuery({
+        queryKey: ["cartItems"],
+        queryFn: fetchCartItems,
+    });
+
+    //const userId = Cookies.get("userId");
+    const userId = items.user?.userId;
+    console.log("item's userId in orderSummary: ", items.user?.userId);
+
+    useEffect(() => {
+        // const storedId = Cookies.get("userId");
+        const token = Cookies.get("authToken");
+
+        if (!token) {
+            navigate("/auth", { replace: true });
+            return;
+        }
+
+
+    }, [navigate]);
+
+
+    const { data: myOrders } = useQuery({
+        queryKey: ["myOrders"],
         queryFn: () => fetchOrderData(userId!),
-        enabled: !!userId,
+
     });
 
-    const { data: savedAddresses = [], isLoading: isAddressLoading } = useQuery({
-        queryKey: ["address", userId],
+    const { data: savedAddresses = [] } = useQuery({
+        queryKey: ["address"],
         queryFn: () => getAddress(userId!),
-        enabled: !!userId,
 
-    });
-
-    const { data: getOrderItems, isLoading: isItemsLoading } = useQuery({
+    })
+    const { data: getOrderItems } = useQuery({
         queryKey: ["getOrderItem"],
         queryFn: getOrderItem,
-
     });
 
-    const navigate = useNavigate();
-    // Check auth token and redirect if missing
-    useEffect(() => {
-        const token = Cookies.get("authToken");
-        if (!token) {
+    console.log("ORDERS: ", myOrders)
+    console.log("ADDRESS: ", savedAddresses)
+    console.log("orderitem: ", getOrderItems)
 
-            navigate("/auth", { replace: true });
-        }
-    }, [authCheckTick, navigate]);
+    // Avoid accessing data if not ready
+    // if (isOrdersLoading || isAddressLoading || isItemsLoading) {
+    //     return <p style={{ textAlign: "center", marginTop: "100px" }}>Loading...</p>;
+    // }
+    // Check auth token and redirect if missing
+    // useEffect(() => {
+    //     const token = Cookies.get("authToken");
+    //     if (!token) {
+
+    //         navigate("/auth", { replace: true });
+    //     }
+    // }, [authCheckTick, navigate]);
 
     // Every 1 seconds,  re-render
     // useEffect(() => {
@@ -57,13 +85,11 @@ const OrderSummary = () => {
     // console.log(userId)
     console.log("savedAddresses", savedAddresses);
 
-    //console.log(savedAddresses[0].order)
-    //console.log(savedAddresses.find((o) => o.order.order_id === id));
     const data = savedAddresses.find((o: { order: { order_id: string }; }) => o.order?.order_id === id);
-    //console.log(data);
-
 
     const matchedId = myOrders?.data?.find((o: { order_id: string }) => o.order_id === id);
+
+
     //console.log(matchedId);
     // if (isOrdersLoading || isAddressLoading || isItemsLoading) {
     //     return <p style={{ textAlign: 'center', marginTop: '100px' }}>Loading...</p>;

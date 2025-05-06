@@ -13,24 +13,8 @@ const Hero: React.FC = () => {
 
 
     const location = useLocation(); // Get the current location
-    const userId = Cookies.get("userId");
-    // const cartItemCount = useSelector((state: RootState) => state.cart.items.length);
 
-    //const { isLoggedIn } = useSelector((state: RootState) => state.user);
-
-    let authFlag = false;
     let redirectVar = '/auth';
-    // if (isLoggedIn) {
-    //     authFlag = true;
-    // }
-
-
-    // if (authFlag === true) {
-    //     redirectVar = '/profile';
-    //     console.log(redirectVar)
-    // } else {
-    //     console.log(redirectVar);
-    // }
 
     // Set colors based on the current route
     const isCategoriesPage = location.pathname === '/categories' || location.pathname.startsWith('/detailView') || location.pathname.startsWith('/order') || location.pathname.startsWith('/search') || location.pathname.startsWith('/categories') || location.pathname.startsWith('/restaurant/') || location.pathname === '/cart' || location.pathname === '/profile' || location.pathname === '/auth' || location.pathname === '/detailView/:id';
@@ -43,12 +27,11 @@ const Hero: React.FC = () => {
         data: items = [],
 
     } = useQuery({
-        queryKey: ["cartItems", userId],
+        queryKey: ["cartItems"],
         queryFn: fetchCartItems,
-        enabled: !!userId,
     });
 
-    const countItemInCart = items.length;
+    const countItemInCart = items.cartItems?.length;
 
 
     return (

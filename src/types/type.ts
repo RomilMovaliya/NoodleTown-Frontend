@@ -25,4 +25,15 @@ export interface RestaurantsData {
     name: string;
     image: string;
     description: string;
-  }
+}
+
+export interface CartItemPayload {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    image: string;
+    quantity: number;
+    user_id: string;
+    item_id: number;
+}

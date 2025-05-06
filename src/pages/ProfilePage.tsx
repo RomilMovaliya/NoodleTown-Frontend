@@ -4,14 +4,10 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { yellow } from "@mui/material/colors";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-//import { logout, setUsers } from "../store/authSlice";
-//import { RootState } from "../main";
 import Cookies from "js-cookie";
 import { Link } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { passwordReset } from "../utils/auth";
-import { Password } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -21,8 +17,6 @@ const ProfilePage = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [updateAddress, setUpdateAddress] = useState("");
-  const [updatecontact, setUpdatecontact] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
@@ -33,25 +27,15 @@ const ProfilePage = () => {
       console.log("response.data.user", response.data.user);
 
       return response.data.user;
-
-      // if (!response.ok) throw new Error("Unauthorized");
-
-      // const data = await response.json();
-      // return data.user; // contains userId, name, email (from JWT)
     } catch (error) {
       return null;
     }
   };
 
-  const { data: user, isLoading, isError } = useQuery({
+  const { data: user } = useQuery({
     queryKey: ["currentUser"],
     queryFn: fetchCurrentUser,
   });
-
-  console.log("user", user);
-
-  //const userId = user.userId;
-  //console.log("userId", userId);
 
   const resetPasswordMutation = useMutation({
     mutationFn: () => passwordReset(user?.email || "", newPassword),
@@ -62,8 +46,8 @@ const ProfilePage = () => {
 
   // Check auth token and redirect if missing
   useEffect(() => {
-    const userId = Cookies.get("userId");
-    if (!userId) {
+    const token = Cookies.get("authToken");
+    if (!token) {
       navigate("/auth", { replace: true });
     }
   }, [authCheckTick, navigate]);
@@ -84,7 +68,7 @@ const ProfilePage = () => {
     console.log("response of logout", response);
     //dispatch(logout()); // Dispatch to log out the user
     // Cookies.remove("isLoggedIn"); // Remove isLoggedIn from cookies
-    Cookies.remove("userId"); // Remove userId from cookies
+    //Cookies.remove("userId"); // Remove userId from cookies
     Cookies.remove("authToken"); // Remove authToken from cookies
     // Cookies.remove("name");
     // Cookies.remove("email");

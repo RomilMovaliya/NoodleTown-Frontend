@@ -1,12 +1,15 @@
+import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "./axiosInstance";
 
 // Function to fetch cart items from the server
 export const fetchCartItems = async () => {
-    const res = await axiosInstance.get("http://localhost:3001/api/cart/");
+    const res = await axiosInstance.get("/cart");
 
     console.log("Fetched cart items for cartitem page:", res.data);
     return res.data;
 };
+
+
 
 export const clearCartItem = async (userId: string) => {
     const res = await fetch(`http://localhost:3001/api/cart/clear/${userId}`, {
@@ -27,8 +30,9 @@ export const clearCartItem = async (userId: string) => {
 export const addOrderItem = async (user_id: string, order_id: string) => {
     try {
         // Fetch the cart items first
-        const cartItems = await fetchCartItems();
+        const cartData = await fetchCartItems();
 
+        const cartItems = cartData.cartItems || [];
         // Map through the cart items and create an array of order item objects
         const orderItems = cartItems.map((item: any) => ({
             user_id,
@@ -72,7 +76,10 @@ export const addOrderItem = async (user_id: string, order_id: string) => {
 };
 
 export const generateOrder = async (user_id: string) => {
-    const cartItems = await fetchCartItems();
+
+    const cartData = await fetchCartItems();
+
+    const cartItems = cartData.cartItems || [];
 
     const totalPrice = cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
     const totalQuantity = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
@@ -97,16 +104,11 @@ export const generateOrder = async (user_id: string) => {
 
         const data = await response.json();
         console.log("Order created:", data.order_id);
-        return data.order_id; // ✅ Return a single ID
+        return data.order_id;
     } catch (error) {
         console.error("Error creating order:", error);
         throw error;
     }
 };
 
-const paymentStatus = async () => {
-    const response = await fetch('http://localhost/3001/api/payment');
-    const result = response.json();
-    return result;
-}
 

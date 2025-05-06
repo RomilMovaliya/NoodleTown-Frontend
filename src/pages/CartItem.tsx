@@ -1,4 +1,4 @@
-import { useDispatch } from "react-redux";
+
 import {
 
   decrementQuantityApi,
@@ -8,48 +8,51 @@ import {
   removeItemFromCartApi,
 } from "../store/cartSlice";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 import { Box, Button, Grid, Typography, TextField, Stack, Skeleton } from "@mui/material";
 import Lottie from "lottie-react";
 import emptyCartAnimation from "../assets/Images/EmptyBox.json";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useQuery } from "@tanstack/react-query";
 import DeliveryDetails from "../section/Cart/DeliveryDetails";
-import { useEffect, useState } from "react";
-import { setLogin } from "../store/authSlice";
+import { useState } from "react";
+import { fetchCartItems } from "../utils/cartItem";
 
 const CartItem = () => {
 
-  //const dispatch = useDispatch();
-  const userId = Cookies.get("userId");
-
-
   const [openDialog, setOpenDialog] = useState(false);
-
+  //const [cartItems, setCartItems] = useState<any[]>([]);
   const handleDialogOpen = () => setOpenDialog(true);
   const handleDialogClose = () => setOpenDialog(false);
 
-
-  const fetchCartItems = async () => {
-    const res = await fetch("http://localhost:3001/api/cart/");
-    if (!res.ok) {
-      throw new Error("Failed to fetch items from server cart");
-    }
-    const data = await res.json();
-    return data.filter((item: any) => item.user_id == userId);
-  };
 
   const {
     data: items = [],
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["cartItems", userId],
+    queryKey: ["cartItems"],
     queryFn: fetchCartItems,
-    enabled: !!userId,
   });
 
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const cartData = await fetchCartItems();
+  //       setCartItems(cartData.cartItems || []);
+  //     } catch (error) {
+  //       console.error("Failed to fetch cart items:", error);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
+
+
+
   console.log("cart items:", items);
+  //console.log("setcartitem data", cartItems);
 
 
   const handleIncrement = (id: string) => {
@@ -114,13 +117,19 @@ const CartItem = () => {
     );
   }
 
-  const totalPrice = items.reduce(
+
+
+
+
+  const cartItems = items?.cartItems || [];
+
+  const totalPrice = cartItems.reduce(
     (total: number, item: any) => total + item.price * item.quantity,
     0
   );
 
-
-
+  const userId = items.user.userId;
+  console.log("userId", items.user.userId);
   return (
     <>
       <Stack direction={"row"} justifyContent="space-between">
@@ -171,9 +180,9 @@ const CartItem = () => {
 
       </Stack>
 
-      <DeliveryDetails price={totalPrice} open={openDialog} onClose={handleDialogClose} />
+      <DeliveryDetails price={totalPrice} open={openDialog} onClose={handleDialogClose} userId={userId} />
 
-      {items.length === 0 ? (
+      {cartItems.length === 0 ? (
         <Box
           sx={{
             display: "flex",
@@ -226,7 +235,7 @@ const CartItem = () => {
           width="90%"
           m="auto"
         >
-          {items.map((item) => (
+          {cartItems.map((item: any) => (
             <Grid
               item
               xs={12}

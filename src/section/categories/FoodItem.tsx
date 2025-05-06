@@ -24,19 +24,17 @@ const FoodItem = () => {
     null
   );
 
-  const userId: string = Cookies.get("userId") || "";
-  const isLoggedIn = !!userId;
-
   const {
     data: items = [],
     refetch,
   } = useQuery({
-    queryKey: ["cartItems", userId],
+    queryKey: ["cartItems"],
     queryFn: fetchCartItems,
-    enabled: !!userId,
   });
 
-  console.log("cart items", items);
+  const userId = items.user?.userId;
+  const isLoggedIn = !!userId;
+
 
 
   const { data: FoodItem } = useQuery({
@@ -47,7 +45,9 @@ const FoodItem = () => {
 
   console.log("FoodItem data", foodItems);
   console.log("User ID from cookies:", userId);
-  const cartItem = items.find((item: { item_id: number }) => item.item_id === selectedFoodItem?.id);
+
+  const cartItems = items.cartItems || [];
+  const cartItem = cartItems.find((item: { item_id: number }) => item.item_id === selectedFoodItem?.id);
 
   const isItemInCart = !!cartItem;
   console.log("selectedFoodItem", selectedFoodItem);

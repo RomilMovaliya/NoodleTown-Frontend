@@ -16,25 +16,20 @@ import {
   Box,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import Cookies from "js-cookie";
 import { getAddress } from "../../utils/address";
-import { addOrderItem, generateOrder } from "../../utils/cartItem";
-import { useNavigate } from "react-router-dom";
 import { makePayment } from "../orderView/PaymentSection";
 import Lottie from "lottie-react";
 import loadingAnimation from "../../assets/Images/loadingAnimation.json";
-import PaymentSuccess from "../orderView/PaymentSuccess";
 
 interface DeliveryDetailsProps {
   open: boolean;
   onClose: () => void;
   price: number;
+  userId: string;
 }
 
 
-const DeliveryDetails: React.FC<DeliveryDetailsProps> = ({ open, onClose, price }) => {
-  const userId = Cookies.get("userId");
-
+const DeliveryDetails: React.FC<DeliveryDetailsProps> = ({ open, onClose, price, userId }) => {
 
   const [loading, setLoading] = useState(false);
 
@@ -74,11 +69,11 @@ const DeliveryDetails: React.FC<DeliveryDetailsProps> = ({ open, onClose, price 
     }
   }, [open]);
 
-  const handleSelectChange = (e) => {
+  const handleSelectChange = (e: { target: { value: any } }) => {
     const addressId = e.target.value;
     setSelectedAddressId(addressId);
 
-    const selected = savedAddresses.find((addr) => addr.id === addressId);
+    const selected = savedAddresses.find((addr: { id: any }) => addr.id === addressId);
     if (selected) {
       setForm({
         name: selected.name || "",
@@ -93,14 +88,14 @@ const DeliveryDetails: React.FC<DeliveryDetailsProps> = ({ open, onClose, price 
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: any, value: any } }) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setLoading(true);
 
@@ -165,7 +160,7 @@ const DeliveryDetails: React.FC<DeliveryDetailsProps> = ({ open, onClose, price 
                     onChange={handleSelectChange}
                     label="Select Saved Address"
                   >
-                    {savedAddresses.map((addr) => (
+                    {savedAddresses.map((addr: any) => (
                       <MenuItem key={addr.id} value={addr.id}>
                         {`${addr.name}, ${addr.address}, ${addr.city}`}
                       </MenuItem>

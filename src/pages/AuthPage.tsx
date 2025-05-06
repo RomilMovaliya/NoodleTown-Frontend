@@ -9,9 +9,9 @@ import axiosInstance from "../utils/axiosInstance";
 const AuthPage = () => {
 
   useEffect(() => {
-    const userId = Cookies.get("userId");
-    console.log("user id in login page", userId);
-    if (userId) {
+    const token = Cookies.get("authToken");
+    console.log("user id in login page", token);
+    if (token) {
       navigate("/profile");
     }
   })
@@ -60,8 +60,8 @@ const AuthPage = () => {
 
     // If login is successful, set the token and userId in cookies
     const { token, userId } = response.data;
-    Cookies.set("authToken", token, { expires: 5 / (60 * 24) });
-    Cookies.set("userId", userId, { expires: 5 / (60 * 24) });
+    Cookies.set("authToken", token, { expires: 12 / 24 });
+    //Cookies.set("userId", userId, { expires: 12 / 24 });
 
     console.log("Login response:", response.data);
     setShowAlert(false);

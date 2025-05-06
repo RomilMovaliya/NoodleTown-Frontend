@@ -1,15 +1,28 @@
 import { useEffect, useState } from "react";
-import { Box, Stack, Button } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOrderData } from "../utils/address";
 import { updateOrderId } from "../utils/deliverydetail";
+import { fetchCartItems } from "../utils/cartItem";
 
 const OrderPage = () => {
 
-    const userId = Cookies.get("userId");
-    updateOrderId(userId, localStorage.getItem("orderId"));
+    const {
+        data: items = [],
+    } = useQuery({
+        queryKey: ["cartItems"],
+        queryFn: fetchCartItems,
+    });
+
+    // const userId = Cookies.get("userId");
+    const userId = items.user?.userId;
+
+    useEffect(() => {
+        updateOrderId(userId, localStorage.getItem("orderId") || "");
+
+    }, [])
     const [authCheckTick, setAuthCheckTick] = useState(0);
 
 
