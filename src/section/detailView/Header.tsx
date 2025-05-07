@@ -1,9 +1,4 @@
 import { Box, Skeleton, Stack } from '@mui/material'
-import { useEffect, useState } from 'react'
-import {
-    headerItem1, headerItem2, headerItem3, mcdHeader1, mcdHeader2, mcdHeader3,
-    burgurKing2, burgurKing3, starbuckImg1, starbuckImg2, starbuckImg3, kfc1, kfc2, kfc3
-} from '../../assets/index';
 
 import { useParams } from 'react-router';
 import { getData } from '../../utils/detailview';
@@ -27,19 +22,17 @@ const Header = () => {
 
 
 
-    interface HeadersImg {
-        id: number,
-        image1: string,
-        image2: string,
-        image3: string
-    }
+    // interface HeadersImg {
+    //     id: number,
+    //     image1: string,
+    //     image2: string,
+    //     image3: string
+    // }
 
 
 
-    const [selectedBrand, setSelectedBrand] = useState<HeadersImg | null>(null);
 
-
-    const headerImg: HeadersImg[] = brandData;
+    // const headerImg: HeadersImg[] = brandData;
 
     // useEffect(() => {
     //     const barndId = parseInt(id || '0');

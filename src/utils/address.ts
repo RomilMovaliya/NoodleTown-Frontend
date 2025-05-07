@@ -16,7 +16,7 @@ export const fetchOrderPageData = async (userId: string) => {
     const data = await response.json();
     let totalprice = 0;
     let totalitems = 0;
-    data.forEach((item) => {
+    data.forEach((item: any) => {
         item.user_id === userId;
         console.log("fetchOrderPageData data", item.user_id === userId);
 

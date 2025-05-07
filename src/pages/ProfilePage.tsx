@@ -14,7 +14,7 @@ import axiosInstance from "../utils/axiosInstance";
 
 const ProfilePage = () => {
 
-  const [currentPassword, setCurrentPassword] = useState("");
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -89,12 +89,14 @@ const ProfilePage = () => {
       const data = await resetPasswordMutation.mutateAsync();
 
       if (data) {
-        setCurrentPassword("");
+
         setNewPassword("");
         setConfirmNewPassword("");
         toast.success("Password updated successfully!")
       } else {
         setErrorMessage(data?.message || "Password update failed.");
+        console.log(errorMessage);
+
       }
     } catch (err) {
       console.error("Password reset error:", err);

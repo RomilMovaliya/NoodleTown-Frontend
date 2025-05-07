@@ -21,7 +21,7 @@ const AuthPage = () => {
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isRegister, setIsRegister] = useState(false);
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+
   const [showAlert, setShowAlert] = useState(false);
   const navigate = useNavigate();
 
@@ -30,6 +30,7 @@ const AuthPage = () => {
     password: string;
     name: string;
   }) => {
+
     try {
       const response = await axiosInstance.post("/register");
 
@@ -37,10 +38,12 @@ const AuthPage = () => {
         toast.success("Registration successful!");
       }
 
+      console.log(userData);
     } catch (error) {
       toast.error("Registration failed. Please try again.");
     }
   };
+
 
   const loginUser = async (email: string, password: string) => {
 
@@ -59,7 +62,7 @@ const AuthPage = () => {
     setShowAlert(true);
 
     // If login is successful, set the token and userId in cookies
-    const { token, userId } = response.data;
+    const { token } = response.data;
     Cookies.set("authToken", token, { expires: 12 / 24 });
     //Cookies.set("userId", userId, { expires: 12 / 24 });
 
@@ -117,117 +120,92 @@ const AuthPage = () => {
         },
       }}
     >
-      {/* Lottie Animation Popup (Only visible when showSuccessPopup is true) */}
-      {showSuccessPopup ? (
-        <Box
+
+
+      <form
+        onSubmit={onSubmitHandler}
+        style={{ width: "100%", maxWidth: "400px" }}
+      >
+        <Typography
           sx={{
-            position: "fixed",
-            top: "60%",
-            left: "50%",
-            width: "50%",
-            transform: "translate(-50%, -50%)",
-            padding: 3,
-            borderRadius: 2,
-            zIndex: 9999,
+            fontSize: "30px",
+            fontFamily: "Poppins",
+            fontWeight: "700",
+            color: yellow[700],
           }}
         >
-          <Typography
-            sx={{
-              color: "white",
-              fontSize: 18,
-              textAlign: "center",
-              marginTop: 2,
-            }}
-          >
-            Registration Successful!
-          </Typography>
-        </Box>
-      ) : (
-        <>
-          <form
-            onSubmit={onSubmitHandler}
-            style={{ width: "100%", maxWidth: "400px" }}
-          >
-            <Typography
-              sx={{
-                fontSize: "30px",
-                fontFamily: "Poppins",
-                fontWeight: "700",
-                color: yellow[700],
-              }}
-            >
-              {isRegister ? "Register" : "Login"}
-            </Typography>
+          {isRegister ? "Register" : "Login"}
+        </Typography>
 
-            {isRegister && (
-              <TextField
-                fullWidth
-                label="Full Name"
-                variant="outlined"
-                margin="normal"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            )}
+        {isRegister && (
+          <TextField
+            fullWidth
+            label="Full Name"
+            variant="outlined"
+            margin="normal"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        )}
 
-            <TextField
-              fullWidth
-              label="Email"
-              variant="outlined"
-              margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        <TextField
+          fullWidth
+          label="Email"
+          variant="outlined"
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              variant="outlined"
-              margin="normal"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+        <TextField
+          fullWidth
+          label="Password"
+          type="password"
+          variant="outlined"
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-            {isRegister && (
-              <TextField
-                fullWidth
-                label="Confirm Password"
-                type="password"
-                variant="outlined"
-                margin="normal"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            )}
+        {isRegister && (
+          <TextField
+            fullWidth
+            label="Confirm Password"
+            type="password"
+            variant="outlined"
+            margin="normal"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        )}
 
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: yellow[700],
-                width: "100%",
-                marginTop: 2,
-                padding: "12px",
-              }}
-            >
-              {isRegister ? "Register" : "Login"}
-            </Button>
-          </form>
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{
+            backgroundColor: yellow[700],
+            width: "100%",
+            marginTop: 2,
+            padding: "12px",
+          }}
+        >
+          {isRegister ? "Register" : "Login"}
+        </Button>
+      </form>
 
-          <Button
-            onClick={() => setIsRegister(!isRegister)}
-            sx={{ marginTop: 2, color: yellow[700] }}
-          >
-            {isRegister
-              ? "Already have an account? Login"
-              : "Don't have an account? Register"}
-          </Button>
+      <Button
+        onClick={() => setIsRegister(!isRegister)}
+        sx={{ marginTop: 2, color: yellow[700] }}
+      >
+        {isRegister
+          ? "Already have an account? Login"
+          : "Don't have an account? Register"}
+      </Button>
 
-          {/* Conditional Alert for successful login */}
-          {showAlert && <Alert severity="success">Login successful!</Alert>}
-        </>
-      )}
+      {/* Conditional Alert for successful login */}
+      {showAlert && <Alert severity="success">Login successful!</Alert>}
+
+
     </Box>
   );
 };

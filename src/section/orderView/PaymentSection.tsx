@@ -27,7 +27,7 @@ export const makePayment = async (userId: string, orderId: string, price: number
 
   const session = await response.json();
 
-  const result = stripe?.redirectToCheckout({
+  stripe?.redirectToCheckout({
     sessionId: session.id
   });
 

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+
 import axiosInstance from "./axiosInstance";
 
 // Function to fetch cart items from the server
