@@ -1,22 +1,27 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Skeleton, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { leftImg, rightImg } from "../../assets/index";
 import { yellow } from "@mui/material/colors";
 import { ShoppingBag } from "@mui/icons-material";
+import { useQuery } from "@tanstack/react-query";
+import { getData } from "../../utils/homepage";
 
 const PopularRecipes: React.FC = () => {
     const [recipes, setRecipes] = useState<any[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("Pizza");
 
-    const getData = async () => {
-        const response = await fetch("http://localhost:3001/api/recipes");
-        const result = await response.json();
-        setRecipes(result.data);
-    };
+    const { data: getMyData, isLoading: isLoadingMyData } = useQuery({
+        queryKey: ["recipes"],
+        queryFn: getData,
+    });
 
     useEffect(() => {
-        getData();
-    }, []);
+        if (getMyData) {
+            setRecipes(getMyData);
+        }
+    }, [getMyData]);
+
+
 
     const buttonItem = ["Pizza", "Dessert", "Sides", "Garlic Breads", "Burgers"];
 
@@ -26,11 +31,6 @@ const PopularRecipes: React.FC = () => {
         if (!selectedCategory) return true;  // No category selected, show all
         return recipe.category === selectedCategory;
     });
-
-
-
-
-
 
     return (
         <Box className="content" sx={{ position: 'relative', marginTop: '80px' }}>
@@ -121,25 +121,39 @@ const PopularRecipes: React.FC = () => {
                 marginInline: '90px',
                 marginTop: '70px',
             }}>
-                {buttonItem.map((category, index) => (
-                    <button
 
-                        key={index}
-                        onClick={() => setSelectedCategory(category)}  // Handle tab change and set category
 
-                        style={{
+                {isLoadingMyData ? (
+                    Array.from({ length: 5 }).map((_, index) => (
+                        <Skeleton
+                            key={index}
+                            variant="rectangular"
+                            width={100}
+                            height={50}
+                            sx={{ borderRadius: '30px' }}
+                        />
+                    ))
+                ) : (
+                    buttonItem.map((category, index) => (
+                        <button
 
-                            fontWeight: 600,
-                            backgroundColor: selectedCategory === category ? yellow[700] : '#ECEEF6',
-                            color: selectedCategory === category ? 'white' : 'black',
-                            height: '50px',
-                            borderRadius: '30px',
-                            border: 'none'
-                        }}
-                    >
-                        {category}  {/* Display the name from the array */}
-                    </button>
-                ))}
+                            key={index}
+                            onClick={() => setSelectedCategory(category)}  // Handle tab change and set category
+
+                            style={{
+
+                                fontWeight: 600,
+                                backgroundColor: selectedCategory === category ? yellow[700] : '#ECEEF6',
+                                color: selectedCategory === category ? 'white' : 'black',
+                                height: '50px',
+                                borderRadius: '30px',
+                                border: 'none'
+                            }}
+                        >
+                            {category}  {/* Display the name from the array */}
+                        </button>
+                    ))
+                )}
             </Box>
 
             {/* Horizontal Scrollable Recipe Cards */}
@@ -157,16 +171,12 @@ const PopularRecipes: React.FC = () => {
                 "&::-webkit-scrollbar-track": { backgroundColor: "transparent" },
             }}>
 
-                {filteredRecipes.length === 0 ? (
-                    <Typography variant="h6" sx={{ textAlign: "center", width: "100%" }}>
-                        No items found
-                    </Typography>
-                ) :
-                    (filteredRecipes.map((recipe, index) => (
-                        <Box key={index} className="card1" sx={{
-                            flex: "0 0 250px", // Fixed width for horizontal scrolling
+
+                {isLoadingMyData ? (
+                    Array.from({ length: 5 }).map((_, index) => (
+                        <Box key={index} sx={{
+                            flex: "0 0 250px",
                             padding: "2rem 1rem",
-                            position: "relative",
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
@@ -175,60 +185,91 @@ const PopularRecipes: React.FC = () => {
                             borderRadius: "1rem",
                             maxWidth: "300px",
                         }}>
-                            <Box component="img" className="item-image" src={recipe.image} alt="" sx={{
-                                height: "8rem",
-                                width: "8rem",
-                                borderRadius: "1rem",
-                                marginBottom: "1rem",
-                                objectFit: "cover"
-                            }} />
-                            <Box className="title-and-time" sx={{
-                                width: "100%",
+                            <Skeleton variant="rectangular" width={128} height={128} sx={{ borderRadius: '1rem', marginBottom: '1rem' }} />
+                            <Skeleton width="60%" height={30} sx={{ marginBottom: 1 }} />
+                            <Skeleton width="80%" height={20} sx={{ marginBottom: 2 }} />
+                            <Skeleton width="40%" height={24} />
+                        </Box>
+                    ))
+                ) : (
+                    filteredRecipes.length === 0 ? (
+                        <Typography variant="h6" sx={{ textAlign: "center", width: "100%" }}>
+                            No items found
+                        </Typography>
+                    ) :
+                        (filteredRecipes.map((recipe, index) => (
+                            <Box key={index} className="card1" sx={{
+                                flex: "0 0 250px", // Fixed width for horizontal scrolling
+                                padding: "2rem 1rem",
+                                position: "relative",
                                 display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}>
-                                <Typography variant="h6" className="item">{recipe.title}</Typography>
-                            </Box>
-                            <Typography className="description light-text" sx={{
-
-                                textAlign: "center",
-                                marginBottom: "2rem",
-                                fontSize: "14px"
-                            }}>{recipe.description}</Typography>
-                            <Typography className="price" fontSize={20} fontWeight={500}>{recipe.price}</Typography>
-
-                            <Box className="triangle" sx={{
-                                position: "absolute",
-                                bottom: "-1.5rem",
-                                left: "40%",
-                                transform: "rotate(45deg)",
-                                height: "3rem",
-                                width: "3rem",
-                                backgroundColor: "white",
-                                borderRight: "3px solid #ECEEF6",
-                                borderBottom: "3px solid #ECEEF6",
-                                borderRadius: "0.5rem",
-                                display: "flex",
-                                justifyContent: "center",
+                                flexDirection: "column",
                                 alignItems: "center",
+                                justifyContent: "space-between",
+                                border: "2px solid #ECEEF6",
+                                borderRadius: "1rem",
+                                maxWidth: "300px",
                             }}>
-                                <Box className="circle" sx={{
-                                    transform: "rotate(-45deg)",
-                                    backgroundColor: "white",
-                                    border: "2px solid #ECEEF6",
-                                    padding: "0.4rem",
-                                    borderRadius: "50%",
-                                    background: "#F6B716",
+                                <Box component="img" className="item-image" src={recipe.image} alt="" sx={{
+                                    height: "8rem",
+                                    width: "8rem",
+                                    borderRadius: "1rem",
+                                    marginBottom: "1rem",
+                                    objectFit: "cover"
+                                }} />
+                                <Box className="title-and-time" sx={{
+                                    width: "100%",
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center"
                                 }}>
-                                    <ShoppingBag sx={{
-                                        fontSize: "1rem", // Set the size of the icon
-                                        color: "black",   // Set the icon color
-                                    }} />
+                                    <Typography variant="h6" className="item">{recipe.title}</Typography>
+                                </Box>
+                                <Typography className="description light-text" sx={{
+
+                                    textAlign: "center",
+                                    marginBottom: "2rem",
+                                    fontSize: "14px"
+                                }}>{recipe.description}</Typography>
+                                <Typography className="price" fontSize={20} fontWeight={500}>{recipe.price}</Typography>
+
+                                <Box className="triangle" sx={{
+                                    position: "absolute",
+                                    bottom: "-1.5rem",
+                                    left: "40%",
+                                    transform: "rotate(45deg)",
+                                    height: "3rem",
+                                    width: "3rem",
+                                    backgroundColor: "white",
+                                    borderRight: "3px solid #ECEEF6",
+                                    borderBottom: "3px solid #ECEEF6",
+                                    borderRadius: "0.5rem",
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}>
+                                    <Box className="circle" sx={{
+                                        transform: "rotate(-45deg)",
+                                        backgroundColor: "white",
+                                        border: "2px solid #ECEEF6",
+                                        padding: "0.4rem",
+                                        borderRadius: "50%",
+                                        background: "#F6B716",
+                                    }}>
+                                        <ShoppingBag sx={{
+                                            fontSize: "1rem", // Set the size of the icon
+                                            color: "black",   // Set the icon color
+                                        }} />
+                                    </Box>
                                 </Box>
                             </Box>
-                        </Box>
-                    )))}
+                        ))))
+                }
+
+
+
+
+
             </Box>
         </Box>
     );

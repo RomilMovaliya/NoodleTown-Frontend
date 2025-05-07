@@ -7,7 +7,6 @@ import { useLocation } from 'react-router';
 import { AccountCircle } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCartItems } from '../../utils/cartItem';
-import Cookies from 'js-cookie';
 
 const Hero: React.FC = () => {
 

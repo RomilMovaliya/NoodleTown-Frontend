@@ -1,4 +1,4 @@
-import { Box, Button, ListItemText, Stack, Typography } from "@mui/material";
+import { Box, Button, ListItemText, Skeleton, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
 import {
@@ -51,7 +51,7 @@ const OrderOnline = () => {
     category: string;
   }
 
-  const { data: itemsData } = useQuery({
+  const { data: itemsData, isLoading: isItemsLoading } = useQuery({
     queryKey: ["itemsData"],
     queryFn: getOrderOnlineData
   })
@@ -217,260 +217,289 @@ const OrderOnline = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          marginInline: {
-            lg: "160px",
-            xs: "30px",
-          },
-          "@media (max-width:320px)": {
-            flexDirection: "column",
-            marginInline: "10px",
-          },
-        }}
-      >
-        <Stack
+      {isItemsLoading ? (
+        Array.from({ length: 4 }).map((_, i) => (
+          <Box
+            key={i}
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "300px 3fr",
+              marginBlock: 2,
+              borderRadius: "10px",
+              padding: "20px",
+              boxShadow: "0 6px 12px 1px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Skeleton
+              variant="rectangular"
+              width={300}
+              height={200}
+              sx={{ borderRadius: 2 }}
+            />
+            <Box sx={{ paddingLeft: 2 }}>
+              <Skeleton width="60%" height={30} />
+              <Skeleton width="80%" height={20} sx={{ my: 1 }} />
+              <Skeleton width="40%" height={20} />
+              <Skeleton width="30%" height={36} sx={{ mt: 2 }} />
+            </Box>
+          </Box>
+        ))) : (
+        <Box
           sx={{
-            flexDirection: "row",
-            "@media (max-width:600px)": {
-              flexDirection: "column",
-              marginInline: "20px",
+            marginInline: {
+              lg: "160px",
+              xs: "30px",
             },
-
-            "@media (max-width:850px)": {
+            "@media (max-width:320px)": {
               flexDirection: "column",
-              marginInline: "20px",
+              marginInline: "10px",
             },
           }}
-          spacing={2}
-          alignItems="flex-start"
         >
-          <Box sx={{ maxWidth: 400, padding: 2, marginLeft: 0 }}>
-            {allrecommendedItems.map((item, index) => (
-              <Button
-                key={index}
-                // selected={selectedIndex === index}
-                onClick={() => handleListItemClick(index, item.category)}
-                sx={{
-                  minWidth: {
-                    xs: 200,
-                    lg: 300,
-                  },
-                  display: "flex",
-                  justifyContent: "space-between",
-                  borderRadius: 2,
-                  transition: "all 0.3s ease",
-                  backgroundColor:
-                    selectedIndex === index ? "#FFC300" : "transparent",
-                  color: selectedIndex === index ? "black" : "inherit",
-                }}
-              >
-                <ListItemText primary={item.name} />
-              </Button>
-            ))}
-          </Box>
-
-          {/* Vertical line */}
-          <Box
+          <Stack
             sx={{
-              height: "500px",
-              width: "2px",
-              backgroundColor: "#FFC300",
-              marginTop: 3,
-              marginBottom: 20,
+              flexDirection: "row",
+              "@media (max-width:600px)": {
+                flexDirection: "column",
+                marginInline: "20px",
+              },
 
               "@media (max-width:850px)": {
-                height: "0px",
-                width: "0px",
+                flexDirection: "column",
+                marginInline: "20px",
               },
             }}
-          />
+            spacing={2}
+            alignItems="flex-start"
+          >
+            <Box sx={{ maxWidth: 400, padding: 2, marginLeft: 0 }}>
+              {allrecommendedItems.map((item, index) => (
+                <Button
+                  key={index}
+                  // selected={selectedIndex === index}
+                  onClick={() => handleListItemClick(index, item.category)}
+                  sx={{
+                    minWidth: {
+                      xs: 200,
+                      lg: 300,
+                    },
+                    display: "flex",
+                    justifyContent: "space-between",
+                    borderRadius: 2,
+                    transition: "all 0.3s ease",
+                    backgroundColor:
+                      selectedIndex === index ? "#FFC300" : "transparent",
+                    color: selectedIndex === index ? "black" : "inherit",
+                  }}
+                >
+                  <ListItemText primary={item.name} />
+                </Button>
+              ))}
+            </Box>
 
-          <Stack>
-            <Typography
-              variant="h4"
+            {/* Vertical line */}
+            <Box
               sx={{
-                marginBottom: 2,
-                fontWeight: "bold",
-                marginLeft: {
-                  xs: "20px",
-                  lg: "30px",
-                },
+                height: "500px",
+                width: "2px",
+                backgroundColor: "#FFC300",
+                marginTop: 3,
+                marginBottom: 20,
 
-                "@media (max-width:600px)": {
-                  marginLeft: "0px",
+                "@media (max-width:850px)": {
+                  height: "0px",
+                  width: "0px",
                 },
               }}
-            >
-              {selectedCategory.split(" ").slice(1).join(" ")}{" "}
-              {/* Display the selected category */}
-            </Typography>
+            />
 
-            {/* Recommended content */}
-            <Box
-              marginTop="10px"
-              marginInline="70px"
-              sx={{ "@media (max-width:1090px)": { marginInline: "10px" } }}
-            >
-              {filteredItems.map((item) => {
-                console.log("filteredItems", filteredItems)
-                console.log("items", item.id);
+            <Stack>
+              <Typography
+                variant="h4"
+                sx={{
+                  marginBottom: 2,
+                  fontWeight: "bold",
+                  marginLeft: {
+                    xs: "20px",
+                    lg: "30px",
+                  },
 
-                //const cartItem = items.find((cart: any) => cart.name === item.name);
-                const cartItem = cartItems.find((cart: any) => cart.name === item.name);
+                  "@media (max-width:600px)": {
+                    marginLeft: "0px",
+                  },
+                }}
+              >
+                {selectedCategory.split(" ").slice(1).join(" ")}{" "}
+                {/* Display the selected category */}
+              </Typography>
 
-                console.log("cartItem jojo", cartItem);
-                console.log("cartItem.name", cartItem?.name);
-                console.log(item.name);
-                const isItemInCart = !!cartItem;
+              {/* Recommended content */}
+              <Box
+                marginTop="10px"
+                marginInline="70px"
+                sx={{ "@media (max-width:1090px)": { marginInline: "10px" } }}
+              >
+                {filteredItems.map((item) => {
+                  console.log("filteredItems", filteredItems)
+                  console.log("items", item.id);
 
-                const ItemQuantity = {
-                  quantity: cartItem?.quantity ?? 0,
-                  cartitem_id: cartItem?.cartitem_id ?? '',
-                };
+                  //const cartItem = items.find((cart: any) => cart.name === item.name);
+                  const cartItem = cartItems.find((cart: any) => cart.name === item.name);
 
-                return (
-                  <Box
-                    key={item.id}
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: "300px 3fr", // Horizontal layout for larger screens
+                  console.log("cartItem jojo", cartItem);
+                  console.log("cartItem.name", cartItem?.name);
+                  console.log(item.name);
+                  const isItemInCart = !!cartItem;
 
-                      "@media (max-width: 1206px)": {
-                        gridTemplateColumns: "300px 3fr", // Horizontal layout for larger screens
-                      },
+                  const ItemQuantity = {
+                    quantity: cartItem?.quantity ?? 0,
+                    cartitem_id: cartItem?.cartitem_id ?? '',
+                  };
 
-                      "@media (max-width: 830px)": {
-                        gridTemplateRows: "170px 3fr", // Adjust the rows layout for smaller screens
-                        padding: "10px",
-                        marginBlock: 0,
-                      },
-                      "@media (max-width: 780px)": {
-                        gridTemplateRows: "170px 3fr",
-                      },
-                      "@media (max-width: 700px)": {
-                        gridTemplateColumns: "1fr", // Change to vertical layout (single column)
-                        gridTemplateRows: "auto", // Auto-adjust rows for vertical layout
-                        padding: "20px",
-                      },
-                      "@media (max-width: 600px)": {
-                        gridTemplateColumns: "1fr", // Change to vertical layout (single column)
-                        gridTemplateRows: "auto", // Auto-adjust rows for vertical layout
-                        padding: "20px",
-                      },
-                      marginBlock: 2,
-                      borderRadius: "10px",
-                      padding: "20px",
-                      boxShadow: "0 6px 12px 1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  >
+                  return (
                     <Box
-                      component="img"
-                      padding={2}
-                      src={item.image}
+                      key={item.id}
                       sx={{
-                        // border: '2px solid black',
+                        display: "grid",
+                        gridTemplateColumns: "300px 3fr", // Horizontal layout for larger screens
+
+                        "@media (max-width: 1206px)": {
+                          gridTemplateColumns: "300px 3fr", // Horizontal layout for larger screens
+                        },
+
+                        "@media (max-width: 830px)": {
+                          gridTemplateRows: "170px 3fr", // Adjust the rows layout for smaller screens
+                          padding: "10px",
+                          marginBlock: 0,
+                        },
+                        "@media (max-width: 780px)": {
+                          gridTemplateRows: "170px 3fr",
+                        },
+                        "@media (max-width: 700px)": {
+                          gridTemplateColumns: "1fr", // Change to vertical layout (single column)
+                          gridTemplateRows: "auto", // Auto-adjust rows for vertical layout
+                          padding: "20px",
+                        },
+                        "@media (max-width: 600px)": {
+                          gridTemplateColumns: "1fr", // Change to vertical layout (single column)
+                          gridTemplateRows: "auto", // Auto-adjust rows for vertical layout
+                          padding: "20px",
+                        },
+                        marginBlock: 2,
                         borderRadius: "10px",
-                        height: { sm: "150px", md: "190px", lg: "200px" },
-                        width: { sm: "150px", md: "190px", lg: "300px" },
-                        "@media (max-width:830px)": {
-                          display: "flex",
-                          width: "200px",
-                          marginInline: "30px",
-                          justifyContent: "center",
-                        },
-
-                        "@media (max-width:829px)": {
-                          display: "flex",
-                          width: "150px",
-                          marginInline: "20px",
-                          justifyContent: "center",
-                        },
-
-                        "@media (max-width:780px)": {
-                          display: "flex",
-                          width: "150px",
-                          marginInline: "5px",
-                          justifyContent: "center",
-                        },
+                        padding: "20px",
+                        boxShadow: "0 6px 12px 1px rgba(0, 0, 0, 0.1)",
                       }}
-                      borderRadius={4}
-                    />
-                    <Stack sx={{ width: "100%", margin: { md: 2, sm: 1 } }}>
-                      <Typography>{item.name}</Typography>
-                      <Typography
+                    >
+                      <Box
+                        component="img"
+                        padding={2}
+                        src={item.image}
                         sx={{
-                          marginTop: { md: 2, sm: 1, lg: 2 },
-                          fontSize: { lg: 20, md: 15, sm: 12 },
-                          color: "#848484",
-                        }}
-                      >
-                        {item.description}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: { md: "20px", sm: "20px" },
-                          marginTop: { md: 1, sm: 1, lg: 2 },
-                        }}
-                      >
-                        ₹{item.price}
-                      </Typography>
+                          // border: '2px solid black',
+                          borderRadius: "10px",
+                          height: { sm: "150px", md: "190px", lg: "200px" },
+                          width: { sm: "150px", md: "190px", lg: "300px" },
+                          "@media (max-width:830px)": {
+                            display: "flex",
+                            width: "200px",
+                            marginInline: "30px",
+                            justifyContent: "center",
+                          },
 
-                      <Box width="100%">
+                          "@media (max-width:829px)": {
+                            display: "flex",
+                            width: "150px",
+                            marginInline: "20px",
+                            justifyContent: "center",
+                          },
 
-                        {!isItemInCart ? (
-                          <Button
-                            variant="contained"
-                            sx={{
-                              backgroundColor: "#FFA500",
-                              color: "white",
-                              width: "100%",
-                            }}
-                            onClick={() => handleAddToCart(mapToCartPayload(item, userId))}
-                            disabled={ItemQuantity.quantity === 5} // Disable button if item quantity is 5
-                          >
-                            Add To Cart
-                          </Button>
-                        ) : (
-                          <Stack direction="row" spacing={1}>
+                          "@media (max-width:780px)": {
+                            display: "flex",
+                            width: "150px",
+                            marginInline: "5px",
+                            justifyContent: "center",
+                          },
+                        }}
+                        borderRadius={4}
+                      />
+                      <Stack sx={{ width: "100%", margin: { md: 2, sm: 1 } }}>
+                        <Typography>{item.name}</Typography>
+                        <Typography
+                          sx={{
+                            marginTop: { md: 2, sm: 1, lg: 2 },
+                            fontSize: { lg: 20, md: 15, sm: 12 },
+                            color: "#848484",
+                          }}
+                        >
+                          {item.description}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: { md: "20px", sm: "20px" },
+                            marginTop: { md: 1, sm: 1, lg: 2 },
+                          }}
+                        >
+                          ₹{item.price}
+                        </Typography>
+
+                        <Box width="100%">
+
+                          {!isItemInCart ? (
                             <Button
-                              sx={{
-                                fontWeight: "700",
-                                backgroundColor: "#F3F3F3",
-                                color: "black",
-                              }}
-                              onClick={
-                                () => handleDecrement(ItemQuantity.cartitem_id, ItemQuantity.quantity)
-                              }
-                            >
-                              -
-                            </Button>
-                            <Typography sx={{ alignContent: "center" }}>
-                              {ItemQuantity.quantity}
-                            </Typography>
-                            <Button
+                              variant="contained"
                               sx={{
                                 backgroundColor: "#FFA500",
                                 color: "white",
+                                width: "100%",
                               }}
-                              onClick={() =>
-                                handleIncrement(ItemQuantity.cartitem_id)
-                              }
-                              disabled={ItemQuantity.quantity === 5}
+                              onClick={() => handleAddToCart(mapToCartPayload(item, userId))}
+                              disabled={ItemQuantity.quantity === 5} // Disable button if item quantity is 5
                             >
-                              +
+                              Add To Cart
                             </Button>
-                          </Stack>
-                        )}
-                      </Box>
-                    </Stack>
-                  </Box>
-                );
-              })}
-            </Box>
+                          ) : (
+                            <Stack direction="row" spacing={1}>
+                              <Button
+                                sx={{
+                                  fontWeight: "700",
+                                  backgroundColor: "#F3F3F3",
+                                  color: "black",
+                                }}
+                                onClick={
+                                  () => handleDecrement(ItemQuantity.cartitem_id, ItemQuantity.quantity)
+                                }
+                              >
+                                -
+                              </Button>
+                              <Typography sx={{ alignContent: "center" }}>
+                                {ItemQuantity.quantity}
+                              </Typography>
+                              <Button
+                                sx={{
+                                  backgroundColor: "#FFA500",
+                                  color: "white",
+                                }}
+                                onClick={() =>
+                                  handleIncrement(ItemQuantity.cartitem_id)
+                                }
+                                disabled={ItemQuantity.quantity === 5}
+                              >
+                                +
+                              </Button>
+                            </Stack>
+                          )}
+                        </Box>
+                      </Stack>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Stack>
           </Stack>
-        </Stack>
-      </Box>
+        </Box>
+      )}
+
     </>
   );
 };

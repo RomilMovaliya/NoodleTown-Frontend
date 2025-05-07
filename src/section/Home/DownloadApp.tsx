@@ -1,17 +1,9 @@
 import { Box, Typography } from '@mui/material';
-import React from 'react'
-import { playstore, appstore, rectangle56 } from '../../assets/index'
+import React from 'react';
 
 const DownloadApp: React.FC = () => {
-
-
-
-
-
     return (
         <>
-
-
             <Box className="curv-card">
                 <Box className="card-img" sx={{
                     left: 0,
@@ -46,7 +38,7 @@ const DownloadApp: React.FC = () => {
                         },
                         width: '100%',
                         height: '100%'
-                    }} src={rectangle56} alt="" />
+                    }} src="https://res.cloudinary.com/dq9belmrw/image/upload/v1743496807/noodle-town-assets/cmq7h7q6uap6az8jat0r.png" alt="" />
                 </Box>
 
                 <Box className="content" sx={{
@@ -138,7 +130,7 @@ const DownloadApp: React.FC = () => {
                             xs: '30px'
                         }
                     }}>
-                        <Box component='img' src={playstore} alt="" sx={{
+                        <Box component='img' src="https://res.cloudinary.com/dq9belmrw/image/upload/v1743496800/noodle-town-assets/tgawcsn0ee5qhukxvgrc.png" alt="" sx={{
                             width: '100%',
                             height: {
                                 xs: '30px',
@@ -149,7 +141,7 @@ const DownloadApp: React.FC = () => {
                                 height: '20px',
                             },
                         }} />
-                        <Box component='img' src={appstore} alt="" sx={{
+                        <Box component='img' src="https://res.cloudinary.com/dq9belmrw/image/upload/v1743496742/noodle-town-assets/gq390xmr6qk6xqkmmnh2.png" alt="" sx={{
                             width: '100%',
                             height: {
                                 xs: '30px',

@@ -2,7 +2,6 @@ import { Box, Button, Skeleton, Stack, Typography } from "@mui/material";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 import { addItemToCartApi, decrementQuantityApi, incrementQuantityApi } from "../../store/cartSlice"; // Assuming you have an API call here
 import { useQuery } from "@tanstack/react-query";
 import { getFoodItemData } from "../../utils/foodItem";

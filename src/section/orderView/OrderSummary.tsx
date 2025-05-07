@@ -36,7 +36,6 @@ const OrderSummary = () => {
             return;
         }
 
-
     }, [navigate]);
 
 
